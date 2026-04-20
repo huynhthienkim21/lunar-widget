@@ -1,0 +1,32 @@
+body {
+  margin: 0;
+  font-family: system-ui;
+  background: #111;
+  color: #fff;
+}
+
+body.light {
+  background: #fff;
+  color: #111;
+}
+
+.widget {
+  padding: 16px;
+  text-align: center;
+}
+
+#solar {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+#lunar {
+  font-size: 18px;
+  margin-top: 6px;
+}
+
+#canchi {
+  font-size: 14px;
+  opacity: 0.7;
+  margin-top: 4px;
+}
