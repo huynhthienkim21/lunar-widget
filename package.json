@@ -1,0 +1,20 @@
+{
+  "name": "lunar-widget",
+  "version": "1.0.0",
+  "description": "Lunar calendar widget with Vercel Speed Insights",
+  "type": "module",
+  "scripts": {
+    "build": "echo 'No build step required for vanilla HTML/JS project'",
+    "lint": "echo 'No linter configured'"
+  },
+  "keywords": [
+    "lunar",
+    "calendar",
+    "widget"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@vercel/speed-insights": "^2.0.0"
+  }
+}
