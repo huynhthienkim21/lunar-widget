@@ -178,11 +178,20 @@ function getMonthCanChi(date){
     date.getFullYear()
   );
 
-  const monthIndex = getSunLongitude(jd,7);
-  const yearCan = (date.getFullYear()+6)%10;
-  const can = (yearCan*2 + monthIndex)%10;
+  // lấy tiết khí (0–23)
+  const sun = getSunLongitude(jd, 7);
 
-  return CAN[can] + " " + CHI[(monthIndex+2)%12];
+  // chia lại thành 12 tháng (mỗi 2 tiết = 1 tháng)
+  const monthIndex = Math.floor((sun + 1) / 2) % 12;
+
+  // map chi tháng (Dần = 0)
+  const chiIndex = (monthIndex + 2) % 12;
+
+  // can tháng
+  const yearCan = (date.getFullYear() + 6) % 10;
+  const canIndex = (yearCan * 2 + monthIndex) % 10;
+
+  return CAN[canIndex] + " " + CHI[chiIndex];
 }
 
 // ===== TIẾT KHÍ =====
