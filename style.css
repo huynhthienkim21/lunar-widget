@@ -63,3 +63,18 @@ body {
   font-size: 10px;
   opacity: 0.7;
 }
+
+.today-box {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+#solarToday {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+#lunarToday {
+  font-size: 14px;
+  opacity: 0.8;
+}
