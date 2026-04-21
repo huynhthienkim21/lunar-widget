@@ -1,6 +1,7 @@
 const PI = Math.PI;
 function INT(d){ return Math.floor(d); }
 
+// ===== Julian Day =====
 function jdFromDate(dd, mm, yy){
   let a = INT((14-mm)/12);
   let y = yy+4800-a;
@@ -9,6 +10,7 @@ function jdFromDate(dd, mm, yy){
          - INT(y/100) + INT(y/400) - 32045;
 }
 
+// ===== New Moon chuẩn =====
 function getNewMoonDay(k, timeZone){
   let T = k/1236.85;
   let T2 = T*T;
@@ -34,27 +36,32 @@ function getNewMoonDay(k, timeZone){
     - 0.0004*Math.sin(3*Mpr*dr)
     + 0.0104*Math.sin(2*F*dr)
     - 0.0051*Math.sin((M+Mpr)*dr)
-    - 0.0074*Math.sin((M-Mpr)*dr);
+    - 0.0074*Math.sin((M-Mpr)*dr)
+    + 0.0004*Math.sin((2*F+M)*dr)
+    - 0.0004*Math.sin((2*F-M)*dr);
 
   let JdNew = Jd1 + C1;
   return INT(JdNew + 0.5 + timeZone/24);
 }
 
+// ===== Sun Longitude chuẩn =====
 function getSunLongitude(jdn, timeZone){
   let T = (jdn - 2451545.5 - timeZone/24)/36525;
   let T2 = T*T;
   let dr = PI/180;
 
-  let M = 357.52910 + 35999.05030*T - 0.0001559*T2;
-  let L0 = 280.46645 + 36000.76983*T;
+  let M = 357.52910 + 35999.05030*T - 0.0001559*T2 - 0.00000048*T*T2;
+  let L0 = 280.46645 + 36000.76983*T + 0.0003032*T2;
 
-  let DL = (1.914600 - 0.004817*T)*Math.sin(dr*M)
-    + 0.019993*Math.sin(2*dr*M);
+  let DL = (1.914600 - 0.004817*T - 0.000014*T2)*Math.sin(dr*M)
+    + (0.019993 - 0.000101*T)*Math.sin(2*dr*M)
+    + 0.000290*Math.sin(3*dr*M);
 
   let L = (L0 + DL)*dr;
-  return INT(L/PI*6);
+  return INT(L/(PI/6));
 }
 
+// ===== Month 11 =====
 function getLunarMonth11(yy, timeZone){
   let off = jdFromDate(31,12,yy) - 2415021;
   let k = INT(off/29.530588853);
@@ -66,6 +73,7 @@ function getLunarMonth11(yy, timeZone){
   return nm;
 }
 
+// ===== Leap Month =====
 function getLeapMonthOffset(a11, timeZone){
   let k = INT((a11 - 2415021.076998695)/29.530588853 + 0.5);
   let last = 0;
@@ -81,6 +89,7 @@ function getLeapMonthOffset(a11, timeZone){
   return i-1;
 }
 
+// ===== MAIN =====
 function convertSolar2Lunar(dd, mm, yy, timeZone=7){
   let dayNumber = jdFromDate(dd, mm, yy);
   let k = INT((dayNumber - 2415021.076998695)/29.530588853);
@@ -128,7 +137,7 @@ function convertSolar2Lunar(dd, mm, yy, timeZone=7){
   return { day: lunarDay, month: lunarMonth, year: lunarYear, leap };
 }
 
-// ===== RENDER HÔM NAY =====
+// ===== RENDER =====
 const now = new Date();
 const dd = now.getDate();
 const mm = now.getMonth() + 1;
