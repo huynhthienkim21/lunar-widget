@@ -166,18 +166,41 @@ async function getTietKhiData(date){
 // ===== MAP TIẾT → THÁNG =====
 function mapTietToMonth(tiet){
   const map = {
-    "Lập Xuân":0,
-    "Kinh Trập":1,
-    "Thanh Minh":2,
-    "Lập Hạ":3,
-    "Mang Chủng":4,
-    "Tiểu Thử":5,
-    "Lập Thu":6,
-    "Bạch Lộ":7,
-    "Hàn Lộ":8,
-    "Lập Đông":9,
-    "Đại Tuyết":10,
-    "Tiểu Hàn":11
+    // Dần
+    "Lập Xuân":0, "Vũ Thủy":0,
+
+    // Mão
+    "Kinh Trập":1, "Xuân Phân":1,
+
+    // Thìn
+    "Thanh Minh":2, "Cốc Vũ":2,
+
+    // Tỵ
+    "Lập Hạ":3, "Tiểu Mãn":3,
+
+    // Ngọ
+    "Mang Chủng":4, "Hạ Chí":4,
+
+    // Mùi
+    "Tiểu Thử":5, "Đại Thử":5,
+
+    // Thân
+    "Lập Thu":6, "Xử Thử":6,
+
+    // Dậu
+    "Bạch Lộ":7, "Thu Phân":7,
+
+    // Tuất
+    "Hàn Lộ":8, "Sương Giáng":8,
+
+    // Hợi
+    "Lập Đông":9, "Tiểu Tuyết":9,
+
+    // Tý
+    "Đại Tuyết":10, "Đông Chí":10,
+
+    // Sửu
+    "Tiểu Hàn":11, "Đại Hàn":11
   };
 
   return map[tiet];
