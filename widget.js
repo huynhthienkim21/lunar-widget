@@ -156,55 +156,44 @@ function getDayCanChi(date){
 }
 
 function getHourCanChi(date){
-  const hour = date.getHours();
+  let hour = date.getHours();
+
+  // 👉 giờ Tý bắt đầu từ 23h
+  let chiIndex = Math.floor((hour + 1) / 2) % 12;
+
   const jd = jdFromDate(
     date.getDate(),
     date.getMonth()+1,
     date.getFullYear()
   );
 
-  const dayCan = (jd+9)%10;
+  const dayCan = (jd + 9) % 10;
 
-  // chia giờ chuẩn
-  const chi = Math.floor((hour+1)/2)%12;
+  const canIndex = (dayCan * 2 + chiIndex) % 10;
 
-  const can = (dayCan*2 + chi)%10;
-
-  return CAN[can] + " " + CHI[chi];
+  return CAN[canIndex] + " " + CHI[chiIndex];
 }
-
 // ===== THÁNG CAN CHI =====
 function getMonthCanChi(date){
-  const y = date.getFullYear();
-  const d = new Date(date);
+  const jd = jdFromDate(
+    date.getDate(),
+    date.getMonth()+1,
+    date.getFullYear()
+  );
 
-  // ===== MỐC TIẾT KHÍ (VN - sai số rất nhỏ) =====
-  const tiet = [
-    new Date(y,1,4),   // Lập Xuân
-    new Date(y,2,6),   // Kinh Trập
-    new Date(y,3,5),   // Thanh Minh
-    new Date(y,4,5),   // Lập Hạ
-    new Date(y,5,6),   // Mang Chủng
-    new Date(y,6,7),   // Tiểu Thử
-    new Date(y,7,8),   // Lập Thu
-    new Date(y,8,8),   // Bạch Lộ
-    new Date(y,9,8),   // Hàn Lộ
-    new Date(y,10,7),  // Lập Đông
-    new Date(y,11,7),  // Đại Tuyết
-    new Date(y,0,6)    // Tiểu Hàn (năm sau)
-  ];
+  const sun = getSunLongitude(jd, 7); // 0–23
 
-  let monthIndex = 0;
+  // 👉 map 24 khí → 12 tháng (lấy TIẾT)
+  const tietIndex = Math.floor(sun / 2);
 
-  for(let i=0;i<tiet.length;i++){
-    if(d >= tiet[i]) monthIndex = i;
-  }
+  // 👉 đổi về tháng Dần = 0
+  const monthIndex = (tietIndex + 10) % 12;
 
   // ===== CHI =====
   const chiIndex = (monthIndex + 2) % 12;
 
   // ===== CAN =====
-  const yearCan = (y + 6) % 10;
+  const yearCan = (date.getFullYear() + 6) % 10;
   const canIndex = (yearCan * 2 + monthIndex) % 10;
 
   return CAN[canIndex] + " " + CHI[chiIndex];
