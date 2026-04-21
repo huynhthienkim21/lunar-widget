@@ -1,5 +1,28 @@
 const CAN = ["Giáp","Ất","Bính","Đinh","Mậu","Kỷ","Canh","Tân","Nhâm","Quý"];
 const CHI = ["Tý","Sửu","Dần","Mão","Thìn","Tỵ","Ngọ","Mùi","Thân","Dậu","Tuất","Hợi"];
+// ===== TIETKHI =====
+function getTietKhi(date){
+  const jd = jdFromDate(
+    date.getDate(),
+    date.getMonth()+1,
+    date.getFullYear()
+  );
+
+  const sun = getSunLongitude(jd, 7);
+
+  const names = [
+    "Xuân Phân","Thanh Minh","Cốc Vũ",
+    "Lập Hạ","Tiểu Mãn","Mang Chủng",
+    "Hạ Chí","Tiểu Thử","Đại Thử",
+    "Lập Thu","Xử Thử","Bạch Lộ",
+    "Thu Phân","Hàn Lộ","Sương Giáng",
+    "Lập Đông","Tiểu Tuyết","Đại Tuyết",
+    "Đông Chí","Tiểu Hàn","Đại Hàn",
+    "Lập Xuân","Vũ Thủy","Kinh Trập"
+  ];
+
+  return names[sun];
+}
 
 // ===== YEAR =====
 function getYearCanChi(year){
