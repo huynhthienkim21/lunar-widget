@@ -1,94 +1,162 @@
-// ===== LUNAR DATA 1900–2100 =====
-const LUNAR_DATA = [
-0x04bd8,0x04ae0,0x0a570,0x054d5,0x0d260,0x0d950,0x16554,0x056a0,0x09ad0,0x055d2,
-0x04ae0,0x0a5b6,0x0a4d0,0x0d250,0x1d255,0x0b540,0x0d6a0,0x0ada2,0x095b0,0x14977,
-0x04970,0x0a4b0,0x0b4b5,0x06a50,0x06d40,0x1ab54,0x02b60,0x09570,0x052f2,0x04970,
-0x06566,0x0d4a0,0x0ea50,0x06e95,0x05ad0,0x02b60,0x186e3,0x092e0,0x1c8d7,0x0c950,
-0x0d4a0,0x1d8a6,0x0b550,0x056a0,0x1a5b4,0x025d0,0x092d0,0x0d2b2,0x0a950,0x0b557,
-0x06ca0,0x0b550,0x15355,0x04da0,0x0a5d0,0x14573,0x052d0,0x0a9a8,0x0e950,0x06aa0,
-0x0aea6,0x0ab50,0x04b60,0x0aae4,0x0a570,0x05260,0x0f263,0x0d950,0x05b57,0x056a0,
-0x096d0,0x04dd5,0x04ad0,0x0a4d0,0x0d4d4,0x0d250,0x0d558,0x0b540,0x0b6a0,0x195a6,
-0x095b0,0x049b0,0x0a974,0x0a4b0,0x0b27a,0x06a50,0x06d40,0x0af46,0x0ab60,0x09570,
-0x04af5,0x04970,0x064b0,0x074a3,0x0ea50,0x06b58,0x05ac0,0x0ab60,0x096d5,0x092e0,
-0x0c960,0x0d954,0x0d4a0,0x0da50,0x07552,0x056a0,0x0abb7,0x025d0,0x092d0,0x0cab5,
-0x0a950,0x0b4a0,0x0baa4,0x0ad50,0x055d9,0x04ba0,0x0a5b0,0x15176,0x052b0,0x0a930,
-0x07954,0x06aa0,0x0ad50,0x05b52,0x04b60,0x0a6e6,0x0a4e0,0x0d260,0x0ea65,0x0d530,
-0x05aa0,0x076a3,0x096d0,0x04bd7,0x04ad0,0x0a4d0,0x1d0b6,0x0d250,0x0d520,0x0dd45,
-0x0b5a0,0x056d0,0x055b2,0x049b0,0x0a577,0x0a4b0,0x0aa50,0x1b255,0x06d20,0x0ada0
-];
+// ===== CONSTANT =====
+const PI = Math.PI;
+function INT(d){ return Math.floor(d); }
 
-// ===== CORE =====
-function getYearInfo(y){ return LUNAR_DATA[y-1900]; }
-
-function getLeapMonth(yInfo){ return yInfo & 0xf; }
-
-function getMonthDays(yInfo, m){
-  return (yInfo & (0x10000 >> m)) ? 30 : 29;
+// ===== DELTA T (rất quan trọng) =====
+function getDeltaT(year){
+  const t = (year - 2000) / 100;
+  return 64.7 + 64.5*t + 0.21*t*t; // xấp xỉ đủ dùng 1900–2100
 }
 
-function getYearDays(yInfo){
-  let sum = 348;
-  for(let i=0x8000;i>0x8;i>>=1){
-    sum += (yInfo & i) ? 1 : 0;
-  }
-  return sum + (getLeapMonth(yInfo) ? 29 : 0);
+// ===== JULIAN =====
+function jdFromDate(dd, mm, yy){
+  let a = INT((14-mm)/12);
+  let y = yy+4800-a;
+  let m = mm+12*a-3;
+  return dd + INT((153*m+2)/5) + 365*y + INT(y/4)
+         - INT(y/100) + INT(y/400) - 32045;
 }
 
-// ===== CONVERT =====
-function convertSolar2Lunar(dd, mm, yy){
-  const baseDate = new Date(1900,0,31);
-  const objDate = new Date(yy,mm-1,dd);
+// ===== NEW MOON (có ΔT) =====
+function getNewMoonDay(k, timeZone){
+  let T = k/1236.85;
+  let T2 = T*T;
+  let T3 = T2*T;
+  let dr = PI/180;
 
-  let offset = Math.floor((objDate-baseDate)/86400000);
+  let Jd1 = 2415020.75933 + 29.53058868*k
+    + 0.0001178*T2 - 0.000000155*T3;
 
-  let lunarYear, yInfo;
+  let M = 359.2242 + 29.10535608*k
+    - 0.0000333*T2 - 0.00000347*T3;
 
-  for(lunarYear=1900;lunarYear<2101;lunarYear++){
-    yInfo = getYearInfo(lunarYear);
-    let days = getYearDays(yInfo);
-    if(offset < days) break;
-    offset -= days;
+  let Mpr = 306.0253 + 385.81691806*k
+    + 0.0107306*T2 + 0.00001236*T3;
+
+  let F = 21.2964 + 390.67050646*k
+    - 0.0016528*T2 - 0.00000239*T3;
+
+  let C1 = (0.1734 - 0.000393*T)*Math.sin(M*dr)
+    + 0.0021*Math.sin(2*M*dr)
+    - 0.4068*Math.sin(Mpr*dr)
+    + 0.0161*Math.sin(2*Mpr*dr)
+    - 0.0004*Math.sin(3*Mpr*dr)
+    + 0.0104*Math.sin(2*F*dr)
+    - 0.0051*Math.sin((M+Mpr)*dr)
+    - 0.0074*Math.sin((M-Mpr)*dr);
+
+  // ΔT correction
+  let deltaT = getDeltaT(2000 + T*100) / 86400;
+
+  let JdNew = Jd1 + C1 - deltaT;
+
+  return INT(JdNew + 0.5 + timeZone/24);
+}
+
+// ===== SUN LONGITUDE =====
+function getSunLongitude(jdn, timeZone){
+  let T = (jdn - 2451545.5 - timeZone/24)/36525;
+  let T2 = T*T;
+  let dr = PI/180;
+
+  let M = 357.52910 + 35999.05030*T - 0.0001559*T2;
+  let L0 = 280.46645 + 36000.76983*T;
+
+  let DL = (1.914600 - 0.004817*T)*Math.sin(dr*M)
+    + 0.019993*Math.sin(2*dr*M);
+
+  let L = (L0 + DL)*dr;
+
+  return INT(L/(PI/6));
+}
+
+// ===== MONTH 11 =====
+function getLunarMonth11(yy, timeZone){
+  let off = jdFromDate(31,12,yy) - 2415021.076998695;
+  let k = INT(off/29.530588853);
+  let nm = getNewMoonDay(k, timeZone);
+  let sunLong = getSunLongitude(nm, timeZone);
+  if(sunLong >= 9){
+    nm = getNewMoonDay(k-1, timeZone);
+  }
+  return nm;
+}
+
+// ===== LEAP =====
+function getLeapMonthOffset(a11, timeZone){
+  let k = INT((a11 - 2415021.076998695)/29.530588853 + 0.5);
+  let last = 0;
+  let i = 1;
+  let arc = getSunLongitude(getNewMoonDay(k+i, timeZone), timeZone);
+
+  do{
+    last = arc;
+    i++;
+    arc = getSunLongitude(getNewMoonDay(k+i, timeZone), timeZone);
+  } while(arc != last && i < 14);
+
+  return i-1;
+}
+
+// ===== MAIN =====
+function convertSolar2Lunar(dd, mm, yy, timeZone=7){
+  let dayNumber = jdFromDate(dd, mm, yy);
+  let k = INT((dayNumber - 2415021.076998695)/29.530588853);
+
+  let monthStart = getNewMoonDay(k+1, timeZone);
+  if(monthStart > dayNumber){
+    monthStart = getNewMoonDay(k, timeZone);
   }
 
-  let leap = getLeapMonth(yInfo);
-  let isLeap = false;
-  let lunarMonth;
+  let a11 = getLunarMonth11(yy, timeZone);
+  let b11 = a11;
+  let lunarYear;
 
-  for(lunarMonth=1;lunarMonth<=12;lunarMonth++){
-    let days = getMonthDays(yInfo,lunarMonth);
+  if(a11 >= monthStart){
+    lunarYear = yy;
+    a11 = getLunarMonth11(yy-1, timeZone);
+  } else {
+    lunarYear = yy+1;
+    b11 = getLunarMonth11(yy+1, timeZone);
+  }
 
-    if(leap && lunarMonth===leap+1 && !isLeap){
-      lunarMonth--;
-      isLeap = true;
-      days = 29;
-    } else {
-      isLeap = false;
+  let lunarDay = dayNumber - monthStart + 1;
+  let diff = INT((monthStart - a11)/29);
+  let lunarMonth = diff + 11;
+  let leap = 0;
+
+  if(b11 - a11 > 365){
+    let leapMonthDiff = getLeapMonthOffset(a11, timeZone);
+    if(diff >= leapMonthDiff){
+      lunarMonth = diff + 10;
+      if(diff == leapMonthDiff){
+        leap = 1;
+      }
     }
-
-    if(offset < days) break;
-    offset -= days;
   }
 
-  let lunarDay = offset + 1;
+  if(lunarMonth > 12){
+    lunarMonth -= 12;
+  }
 
-  return {
-    day: lunarDay,
-    month: lunarMonth,
-    year: lunarYear,
-    leap: isLeap
-  };
+  if(lunarMonth >= 11 && diff < 4){
+    lunarYear -= 1;
+  }
+
+  return { day: lunarDay, month: lunarMonth, year: lunarYear, leap };
 }
 
 // ===== RENDER =====
 const now = new Date();
-const dd = now.getDate();
-const mm = now.getMonth()+1;
-const yy = now.getFullYear();
-
-const lunar = convertSolar2Lunar(dd,mm,yy);
+const lunar = convertSolar2Lunar(
+  now.getDate(),
+  now.getMonth()+1,
+  now.getFullYear(),
+  7
+);
 
 document.getElementById("solar").innerText =
-  `${dd}/${mm}/${yy}`;
+  now.toLocaleDateString("vi-VN");
 
 document.getElementById("lunar").innerText =
   `Âm: ${lunar.day}/${lunar.month}/${lunar.year}` +
