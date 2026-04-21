@@ -28,7 +28,7 @@ function getDayCanChi(date){
 }
 
 // ===== MAIN =====
-const now = new Date("2026-04-21");
+const now = new Date();
 
 const solar = document.getElementById("solar");
 const lunar = document.getElementById("lunar");
