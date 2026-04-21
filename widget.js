@@ -1,21 +1,21 @@
-console.log("widget loaded");
+fetch("./lunar-data.json")
+  .then(r => r.json())
+  .then(data => {
 
-try {
-  const now = new Date();
+    const now = new Date();
+    const key = now.toISOString().slice(0,10);
 
-  const lunar = convertSolar2Lunar(
-    now.getDate(),
-    now.getMonth()+1,
-    now.getFullYear(),
-    7
-  );
+    const l = data[key];
 
-  document.getElementById("solar").innerText =
-    now.toLocaleDateString("vi-VN");
+    document.getElementById("solar").innerText =
+      now.toLocaleDateString("vi-VN");
 
-  document.getElementById("lunar").innerText =
-    `Âm: ${lunar.day}/${lunar.month}/${lunar.year}`;
+    if(l){
+      document.getElementById("lunar").innerText =
+        `Âm: ${l[0]}/${l[1]}/${l[2]}`;
+    } else {
+      document.getElementById("lunar").innerText =
+        "Chưa có dữ liệu";
+    }
 
-} catch (e) {
-  document.body.innerHTML = "Lỗi: " + e;
-}
+  });
