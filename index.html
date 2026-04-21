@@ -6,13 +6,22 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="widget" id="widget">
-    <div id="solar"></div>
-    <div id="lunar"></div>
-    <div id="canchi"></div>
+
+<div class="app">
+  <div class="header">
+    <button onclick="prevMonth()">←</button>
+    <div id="monthTitle"></div>
+    <button onclick="nextMonth()">→</button>
   </div>
 
-  <script src="config.js"></script>
-  <script src="lunar.js"></script>
+  <div class="weekdays">
+    <div>T2</div><div>T3</div><div>T4</div>
+    <div>T5</div><div>T6</div><div>T7</div><div>CN</div>
+  </div>
+
+  <div id="calendar"></div>
+</div>
+
+<script src="lunar.js"></script>
 </body>
 </html>
