@@ -157,3 +157,57 @@ document.getElementById("solar").innerText =
 document.getElementById("lunar").innerText =
   `Âm: ${lunar.day}/${lunar.month}/${lunar.year}` +
   (lunar.leap ? " (Nhuận)" : "");
+
+let current = new Date();
+
+function renderCalendar() {
+  const month = current.getMonth();
+  const year = current.getFullYear();
+
+  document.getElementById("monthTitle").innerText =
+    `Tháng ${month+1}/${year}`;
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+
+  const calendar = document.getElementById("calendar");
+  calendar.innerHTML = "";
+
+  // chuyển CN = 0 thành 7
+  let start = firstDay === 0 ? 6 : firstDay - 1;
+
+  // ô trống đầu
+  for (let i = 0; i < start; i++) {
+    calendar.innerHTML += `<div></div>`;
+  }
+
+  const today = new Date();
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const lunar = convertSolar2Lunar(d, month+1, year, 7);
+
+    const isToday =
+      d === today.getDate() &&
+      month === today.getMonth() &&
+      year === today.getFullYear();
+
+    calendar.innerHTML += `
+      <div class="day ${isToday ? "today" : ""}">
+        <div class="solar">${d}</div>
+        <div class="lunar">${lunar.day}/${lunar.month}</div>
+      </div>
+    `;
+  }
+}
+
+function prevMonth() {
+  current.setMonth(current.getMonth() - 1);
+  renderCalendar();
+}
+
+function nextMonth() {
+  current.setMonth(current.getMonth() + 1);
+  renderCalendar();
+}
+
+renderCalendar();
