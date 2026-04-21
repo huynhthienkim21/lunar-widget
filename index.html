@@ -1,23 +1,79 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Lunar Widget</title>
+  <title>Lịch Âm & Bát Tự</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <link rel="stylesheet" href="./style.css">
+
+  <style>
+    body{
+      font-family: Arial, sans-serif;
+      background:#f5f5f5;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      height:100vh;
+      margin:0;
+    }
+
+    .card{
+      background:white;
+      padding:20px 24px;
+      border-radius:16px;
+      box-shadow:0 4px 20px rgba(0,0,0,0.1);
+      width:280px;
+      text-align:center;
+    }
+
+    .title{
+      font-size:18px;
+      margin-bottom:10px;
+      color:#333;
+    }
+
+    .main{
+      font-size:20px;
+      font-weight:bold;
+      margin:6px 0;
+    }
+
+    .sub{
+      font-size:14px;
+      color:#666;
+      margin:4px 0;
+    }
+
+    .divider{
+      height:1px;
+      background:#eee;
+      margin:12px 0;
+    }
+  </style>
 </head>
 
 <body>
 
   <div class="card">
-    <div id="solar">loading...</div>
-    <div id="lunar">loading...</div>
+    <div class="title">Lịch hôm nay</div>
 
-    <div id="canchi">loading...</div>
-    <div id="zodiac">loading...</div>
-    <div id="tietkhi">loading...</div>
+    <div id="solar" class="main">loading...</div>
+    <div id="lunar" class="sub">loading...</div>
+
+    <div class="divider"></div>
+
+    <div id="year" class="sub"></div>
+    <div id="month" class="sub"></div>
+    <div id="day" class="sub"></div>
+    <div id="hour" class="sub"></div>
+
+    <div class="divider"></div>
+
+    <div id="tietkhi" class="sub"></div>
   </div>
 
-  <!-- CHỈ GIỮ widget -->
+  <!-- CHỈ DÙNG 1 FILE JS -->
   <script src="./widget.js"></script>
 
 </body>
