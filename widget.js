@@ -1,4 +1,4 @@
-fetch("./lunar-data-2026.json")
+fetch("https://cdn.jsdelivr.net/gh/jayakim-lab/lunar-vn-dataset/lunar-2000-2050.min.json")
   .then(r => r.json())
   .then(data => {
 
@@ -10,15 +10,7 @@ fetch("./lunar-data-2026.json")
     document.getElementById("solar").innerText =
       now.toLocaleDateString("vi-VN");
 
-    if(l){
-      document.getElementById("lunar").innerText =
-        `Âm: ${l[0]}/${l[1]}/${l[2]}`;
-    } else {
-      document.getElementById("lunar").innerText =
-        "Chưa có dữ liệu";
-    }
+    document.getElementById("lunar").innerText =
+      `Âm: ${l[0]}/${l[1]}/${l[2]}`;
 
-  })
-  .catch(e => {
-    document.body.innerHTML = "Lỗi load dataset";
   });
