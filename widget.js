@@ -183,18 +183,30 @@ function getMonthCanChi(date){
 
   const sun = getSunLongitude(jd, 7); // 0–23
 
-  // 👉 map 24 khí → 12 tháng (lấy TIẾT)
-  const tietIndex = Math.floor(sun / 2);
+  // ===== CHỈ LẤY TIẾT (0,2,4,...22)
+  const tiet = Math.floor(sun / 2);
 
-  // 👉 đổi về tháng Dần = 0
-  const monthIndex = (tietIndex + 10) % 12;
+  // ===== MAP CHUẨN: Lập Xuân = Dần
+  const chiMap = [
+    2, // Dần
+    3, // Mão
+    4, // Thìn
+    5, // Tỵ
+    6, // Ngọ
+    7, // Mùi
+    8, // Thân
+    9, // Dậu
+    10,// Tuất
+    11,// Hợi
+    0, // Tý
+    1  // Sửu
+  ];
 
-  // ===== CHI =====
-  const chiIndex = (monthIndex + 2) % 12;
+  const chiIndex = chiMap[tiet];
 
-  // ===== CAN =====
+  // ===== CAN THÁNG
   const yearCan = (date.getFullYear() + 6) % 10;
-  const canIndex = (yearCan * 2 + monthIndex) % 10;
+  const canIndex = (yearCan * 2 + tiet) % 10;
 
   return CAN[canIndex] + " " + CHI[chiIndex];
 }
