@@ -73,21 +73,91 @@ function getNewMoonDay(k, timeZone) {
   return INT(Jd1 + C1 - deltaT + 0.5 + timeZone / 24);
 }
 
-// ===== MAIN =====
+// ===== FULL CHUẨN (có tháng + nhuận) =====
+
+function getSunLongitude(jdn, timeZone) {
+  let T = (jdn - 2451545.5 - timeZone/24) / 36525;
+  let T2 = T*T;
+  let dr = Math.PI/180;
+
+  let M = 357.52910 + 35999.05030*T - 0.0001559*T2;
+  let L0 = 280.46645 + 36000.76983*T;
+
+  let DL = (1.914600 - 0.004817*T)*Math.sin(dr*M)
+         + (0.019993 - 0.000101*T)*Math.sin(2*dr*M)
+         + 0.000290*Math.sin(3*dr*M);
+
+  let L = L0 + DL;
+  L = L * dr;
+  L = L - Math.PI*2 * Math.floor(L/(Math.PI*2));
+
+  return Math.floor(L / Math.PI * 6);
+}
+
+function getLunarMonth11(yy, timeZone) {
+  let off = jdFromDate(31, 12, yy) - 2415021;
+  let k = Math.floor(off / 29.530588853);
+  let nm = getNewMoonDay(k, timeZone);
+  let sunLong = getSunLongitude(nm, timeZone);
+
+  if (sunLong >= 9) {
+    nm = getNewMoonDay(k-1, timeZone);
+  }
+
+  return nm;
+}
+
+function getLeapMonthOffset(a11, timeZone) {
+  let k = Math.floor((a11 - 2415021.076998695) / 29.530588853 + 0.5);
+  let last = 0;
+  let i = 1;
+  let arc = getSunLongitude(getNewMoonDay(k+i, timeZone), timeZone);
+
+  do {
+    last = arc;
+    i++;
+    arc = getSunLongitude(getNewMoonDay(k+i, timeZone), timeZone);
+  } while (arc != last && i < 14);
+
+  return i-1;
+}
 
 function convertSolar2Lunar(dd, mm, yy, timeZone) {
   let dayNumber = jdFromDate(dd, mm, yy);
-  let k = INT((dayNumber - 2415021.076998695) / 29.530588853);
-  let monthStart = getNewMoonDay(k + 1, timeZone);
+  let k = Math.floor((dayNumber - 2415021.076998695) / 29.530588853);
+  let monthStart = getNewMoonDay(k+1, timeZone);
 
   if (monthStart > dayNumber) {
     monthStart = getNewMoonDay(k, timeZone);
   }
 
+  let a11 = getLunarMonth11(yy, timeZone);
+  let b11 = a11;
+  let lunarYear;
+
+  if (a11 >= monthStart) {
+    lunarYear = yy;
+    a11 = getLunarMonth11(yy-1, timeZone);
+  } else {
+    lunarYear = yy + 1;
+    b11 = getLunarMonth11(yy+1, timeZone);
+  }
+
   let lunarDay = dayNumber - monthStart + 1;
+  let diff = Math.floor((monthStart - a11) / 29);
+  let lunarLeap = 0;
+  let lunarMonth = diff + 11;
 
-  // NOTE: bản rút gọn (đủ chính xác ngày)
-  // month/year/leap sẽ được fix chuẩn sau nếu cần
+  if (b11 - a11 > 365) {
+    let leapMonthDiff = getLeapMonthOffset(a11, timeZone);
+    if (diff >= leapMonthDiff) {
+      lunarMonth = diff + 10;
+      if (diff == leapMonthDiff) lunarLeap = 1;
+    }
+  }
 
-  return [lunarDay, 3, yy, 0];
+  if (lunarMonth > 12) lunarMonth -= 12;
+  if (lunarMonth >= 11 && diff < 4) lunarYear -= 1;
+
+  return [lunarDay, lunarMonth, lunarYear, lunarLeap];
 }
