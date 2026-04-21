@@ -211,3 +211,21 @@ function nextMonth() {
 }
 
 renderCalendar();
+
+function renderToday() {
+  const now = new Date();
+  const dd = now.getDate();
+  const mm = now.getMonth() + 1;
+  const yy = now.getFullYear();
+
+  const lunar = convertSolar2Lunar(dd, mm, yy, 7);
+
+  document.getElementById("solarToday").innerText =
+    `${dd}/${mm}/${yy}`;
+
+  document.getElementById("lunarToday").innerText =
+    `Âm: ${lunar.day}/${lunar.month}/${lunar.year}` +
+    (lunar.leap ? " (Nhuận)" : "");
+}
+
+renderToday();
