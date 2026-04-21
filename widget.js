@@ -18,6 +18,9 @@ function jdFromDate(dd, mm, yy){
     + Math.floor(y/400) - 32045;
 }
 
+// ===== ÂM LỊCH (GIỮ NGUYÊN CORE CỦA BẠN) =====
+// (không đụng nữa để tránh lỗi)
+
 // ===== SUN LONGITUDE =====
 function getSunLongitude(jdn, timeZone){
   let T = (jdn - 2451545.5 - timeZone/24) / 36525;
@@ -141,25 +144,66 @@ function convertSolar2Lunar(dd, mm, yy, timeZone){
   return [lunarDay, lunarMonth, lunarYear, lunarLeap];
 }
 
-// ===== CAN CHI =====
+
+// ===== LẤY TIẾT KHÍ (DATASET) =====
+async function getTietKhiData(date){
+  const res = await fetch("./data/tietkhi-2026.json");
+  const data = await res.json();
+
+  let current = null;
+
+  for(let i=0;i<data.length;i++){
+    const t = new Date(data[i].time);
+
+    if(date >= t){
+      current = data[i].name;
+    }
+  }
+
+  return current;
+}
+
+// ===== MAP TIẾT → THÁNG =====
+function mapTietToMonth(tiet){
+  const map = {
+    "Lập Xuân":0,
+    "Kinh Trập":1,
+    "Thanh Minh":2,
+    "Lập Hạ":3,
+    "Mang Chủng":4,
+    "Tiểu Thử":5,
+    "Lập Thu":6,
+    "Bạch Lộ":7,
+    "Hàn Lộ":8,
+    "Lập Đông":9,
+    "Đại Tuyết":10,
+    "Tiểu Hàn":11
+  };
+
+  return map[tiet];
+}
+
+// ===== NĂM CAN CHI =====
 function getYearCanChi(year){
   return CAN[(year+6)%10] + " " + CHI[(year+8)%12];
 }
 
+// ===== NGÀY CAN CHI =====
 function getDayCanChi(date){
   const jd = jdFromDate(
     date.getDate(),
     date.getMonth()+1,
     date.getFullYear()
   );
+
   return CAN[(jd+9)%10] + " " + CHI[(jd+1)%12];
 }
 
+// ===== GIỜ CAN CHI =====
 function getHourCanChi(date){
   let hour = date.getHours();
 
-  // 👉 giờ Tý bắt đầu từ 23h
-  let chiIndex = Math.floor((hour + 1) / 2) % 12;
+  let chiIndex = Math.floor((hour+1)/2)%12;
 
   const jd = jdFromDate(
     date.getDate(),
@@ -167,131 +211,70 @@ function getHourCanChi(date){
     date.getFullYear()
   );
 
-  const dayCan = (jd + 9) % 10;
-
-  const canIndex = (dayCan * 2 + chiIndex) % 10;
+  const dayCan = (jd+9)%10;
+  const canIndex = (dayCan*2 + chiIndex)%10;
 
   return CAN[canIndex] + " " + CHI[chiIndex];
 }
-// ===== THÁNG CAN CHI =====
-function getMonthCanChi(date){
-  const jd = jdFromDate(
-    date.getDate(),
-    date.getMonth()+1,
-    date.getFullYear()
-  );
 
-  const sun = getSunLongitude(jd, 7);
+// ===== THÁNG CAN CHI (CHUẨN DATASET) =====
+async function getMonthCanChi(date){
+  const tiet = await getTietKhiData(date);
 
-  // ===== MAP TRỰC TIẾT KHÍ → THÁNG =====
-  let chiIndex;
+  const monthIndex = mapTietToMonth(tiet);
 
-  switch(sun){
-    case 21: // Lập Xuân
-    case 22: // Vũ Thủy
-      chiIndex = 2; break; // Dần
-
-    case 23: // Kinh Trập
-    case 0:  // Xuân Phân
-      chiIndex = 3; break; // Mão
-
-    case 1: // Thanh Minh
-    case 2: // Cốc Vũ
-      chiIndex = 4; break; // Thìn
-
-    case 3: case 4:
-      chiIndex = 5; break; // Tỵ
-
-    case 5: case 6:
-      chiIndex = 6; break; // Ngọ
-
-    case 7: case 8:
-      chiIndex = 7; break; // Mùi
-
-    case 9: case 10:
-      chiIndex = 8; break; // Thân
-
-    case 11: case 12:
-      chiIndex = 9; break; // Dậu
-
-    case 13: case 14:
-      chiIndex = 10; break; // Tuất
-
-    case 15: case 16:
-      chiIndex = 11; break; // Hợi
-
-    case 17: case 18:
-      chiIndex = 0; break; // Tý
-
-    case 19: case 20:
-      chiIndex = 1; break; // Sửu
-  }
-
-  // ===== XÁC ĐỊNH NĂM THEO LẬP XUÂN =====
+  // ===== FIX NĂM THEO LẬP XUÂN =====
   const y = date.getFullYear();
-  const jdNow = jd;
+  const lapXuan = new Date("2026-02-04T10:46:00+07:00");
+  const year = date >= lapXuan ? y : y - 1;
 
-  const lapXuan = jdFromDate(4,2,y);
-  const yearForCan = jdNow >= lapXuan ? y : y-1;
-
-  const yearCan = (yearForCan + 6) % 10;
-
-  // ===== INDEX THÁNG (Dần = 0)
-  const monthIndex = (chiIndex + 10) % 12;
+  const yearCan = (year + 6) % 10;
 
   const canIndex = (yearCan * 2 + monthIndex + 2) % 10;
+  const chiIndex = (monthIndex + 2) % 12;
 
   return CAN[canIndex] + " " + CHI[chiIndex];
-}
-// ===== TIẾT KHÍ =====
-function getTietKhi(date){
-  const jd = jdFromDate(
-    date.getDate(),
-    date.getMonth()+1,
-    date.getFullYear()
-  );
-
-  const index = getSunLongitude(jd,7);
-
-  const names = [
-    "Xuân Phân","Thanh Minh","Cốc Vũ",
-    "Lập Hạ","Tiểu Mãn","Mang Chủng",
-    "Hạ Chí","Tiểu Thử","Đại Thử",
-    "Lập Thu","Xử Thử","Bạch Lộ",
-    "Thu Phân","Hàn Lộ","Sương Giáng",
-    "Lập Đông","Tiểu Tuyết","Đại Tuyết",
-    "Đông Chí","Tiểu Hàn","Đại Hàn",
-    "Lập Xuân","Vũ Thủy","Kinh Trập"
-  ];
-
-  return names[index];
 }
 
 // ===== MAIN =====
-const l = convertSolar2Lunar(
-  now.getDate(),
-  now.getMonth()+1,
-  now.getFullYear(),
-  7
-);
+async function main(){
 
-document.getElementById("solar").innerText =
-  now.toLocaleDateString("vi-VN");
+  // ===== DƯƠNG =====
+  document.getElementById("solar").innerText =
+    now.toLocaleDateString("vi-VN");
 
-document.getElementById("lunar").innerText =
-  `Âm: ${l[0]}/${l[1]}/${l[2]}${l[3] ? " (nhuận)" : ""}`;
+  // ===== ÂM =====
+  const l = convertSolar2Lunar(
+    now.getDate(),
+    now.getMonth()+1,
+    now.getFullYear(),
+    7
+  );
 
-document.getElementById("year").innerText =
-  "Năm: " + getYearCanChi(now.getFullYear());
+  document.getElementById("lunar").innerText =
+    `Âm: ${l[0]}/${l[1]}/${l[2]}${l[3] ? " (nhuận)" : ""}`;
 
-document.getElementById("month").innerText =
-  "Tháng: " + getMonthCanChi(now);
+  // ===== NĂM =====
+  document.getElementById("year").innerText =
+    "Năm: " + getYearCanChi(now.getFullYear());
 
-document.getElementById("day").innerText =
-  "Ngày: " + getDayCanChi(now);
+  // ===== THÁNG =====
+  const month = await getMonthCanChi(now);
+  document.getElementById("month").innerText =
+    "Tháng: " + month;
 
-document.getElementById("hour").innerText =
-  "Giờ: " + getHourCanChi(now);
+  // ===== NGÀY =====
+  document.getElementById("day").innerText =
+    "Ngày: " + getDayCanChi(now);
 
-document.getElementById("tietkhi").innerText =
-  "Tiết khí: " + getTietKhi(now);
+  // ===== GIỜ =====
+  document.getElementById("hour").innerText =
+    "Giờ: " + getHourCanChi(now);
+
+  // ===== TIẾT KHÍ =====
+  const tiet = await getTietKhiData(now);
+  document.getElementById("tietkhi").innerText =
+    "Tiết khí: " + tiet;
+}
+
+main();
