@@ -175,38 +175,33 @@ function getHourCanChi(date){
 }
 // ===== THÁNG CAN CHI =====
 function getMonthCanChi(date){
+  const y = date.getFullYear();
+
   const jd = jdFromDate(
     date.getDate(),
     date.getMonth()+1,
-    date.getFullYear()
+    y
   );
 
   const sun = getSunLongitude(jd, 7); // 0–23
 
-  // ===== CHỈ LẤY TIẾT (0,2,4,...22)
-  const tiet = Math.floor(sun / 2);
+  // ===== CHỈ LẤY TIẾT =====
+  const tietIndex = Math.floor(sun / 2); // 0–11
 
-  // ===== MAP CHUẨN: Lập Xuân = Dần
-  const chiMap = [
-    2, // Dần
-    3, // Mão
-    4, // Thìn
-    5, // Tỵ
-    6, // Ngọ
-    7, // Mùi
-    8, // Thân
-    9, // Dậu
-    10,// Tuất
-    11,// Hợi
-    0, // Tý
-    1  // Sửu
-  ];
+  // ===== MAP TIẾT → THÁNG (Dần = 0)
+  const monthIndex = (tietIndex + 10) % 12;
 
-  const chiIndex = chiMap[tiet];
+  // ===== CHI THÁNG
+  const chiIndex = (monthIndex + 2) % 12;
 
-  // ===== CAN THÁNG
-  const yearCan = (date.getFullYear() + 6) % 10;
-  const canIndex = (yearCan * 2 + tiet) % 10;
+  // ===== XÁC ĐỊNH NĂM THEO LẬP XUÂN
+  const lapXuanJD = jdFromDate(4, 2, y);
+  const yearForCan = jd >= lapXuanJD ? y : y - 1;
+
+  const yearCan = (yearForCan + 6) % 10;
+
+  // ===== CAN THÁNG (QUAN TRỌNG)
+  const canIndex = (yearCan * 2 + monthIndex + 2) % 10;
 
   return CAN[canIndex] + " " + CHI[chiIndex];
 }
