@@ -175,37 +175,74 @@ function getHourCanChi(date){
 }
 // ===== THÁNG CAN CHI =====
 function getMonthCanChi(date){
-  const y = date.getFullYear();
-
   const jd = jdFromDate(
     date.getDate(),
     date.getMonth()+1,
-    y
+    date.getFullYear()
   );
 
-  const sun = getSunLongitude(jd, 7); // 0–23
+  const sun = getSunLongitude(jd, 7);
 
-  // ===== CHỈ LẤY TIẾT =====
-  const tietIndex = Math.floor(sun / 2); // 0–11
+  // ===== MAP TRỰC TIẾT KHÍ → THÁNG =====
+  let chiIndex;
 
-  // ===== MAP TIẾT → THÁNG (Dần = 0)
-  const monthIndex = (tietIndex + 10) % 12;
+  switch(sun){
+    case 21: // Lập Xuân
+    case 22: // Vũ Thủy
+      chiIndex = 2; break; // Dần
 
-  // ===== CHI THÁNG
-  const chiIndex = (monthIndex + 2) % 12;
+    case 23: // Kinh Trập
+    case 0:  // Xuân Phân
+      chiIndex = 3; break; // Mão
 
-  // ===== XÁC ĐỊNH NĂM THEO LẬP XUÂN
-  const lapXuanJD = jdFromDate(4, 2, y);
-  const yearForCan = jd >= lapXuanJD ? y : y - 1;
+    case 1: // Thanh Minh
+    case 2: // Cốc Vũ
+      chiIndex = 4; break; // Thìn
+
+    case 3: case 4:
+      chiIndex = 5; break; // Tỵ
+
+    case 5: case 6:
+      chiIndex = 6; break; // Ngọ
+
+    case 7: case 8:
+      chiIndex = 7; break; // Mùi
+
+    case 9: case 10:
+      chiIndex = 8; break; // Thân
+
+    case 11: case 12:
+      chiIndex = 9; break; // Dậu
+
+    case 13: case 14:
+      chiIndex = 10; break; // Tuất
+
+    case 15: case 16:
+      chiIndex = 11; break; // Hợi
+
+    case 17: case 18:
+      chiIndex = 0; break; // Tý
+
+    case 19: case 20:
+      chiIndex = 1; break; // Sửu
+  }
+
+  // ===== XÁC ĐỊNH NĂM THEO LẬP XUÂN =====
+  const y = date.getFullYear();
+  const jdNow = jd;
+
+  const lapXuan = jdFromDate(4,2,y);
+  const yearForCan = jdNow >= lapXuan ? y : y-1;
 
   const yearCan = (yearForCan + 6) % 10;
 
-  // ===== CAN THÁNG (QUAN TRỌNG)
+  // ===== INDEX THÁNG (Dần = 0)
+  const monthIndex = (chiIndex + 10) % 12;
+
   const canIndex = (yearCan * 2 + monthIndex + 2) % 10;
 
   return CAN[canIndex] + " " + CHI[chiIndex];
 }
-
 // ===== TIẾT KHÍ =====
 function getTietKhi(date){
   const jd = jdFromDate(
