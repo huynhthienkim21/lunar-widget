@@ -1,7 +1,8 @@
+// ===== CONSTANT =====
 const PI = Math.PI;
 function INT(d){ return Math.floor(d); }
 
-// ===== Julian Day =====
+// ===== JULIAN DAY =====
 function jdFromDate(dd, mm, yy){
   let a = INT((14-mm)/12);
   let y = yy+4800-a;
@@ -10,7 +11,7 @@ function jdFromDate(dd, mm, yy){
          - INT(y/100) + INT(y/400) - 32045;
 }
 
-// ===== New Moon chuẩn =====
+// ===== NEW MOON =====
 function getNewMoonDay(k, timeZone){
   let T = k/1236.85;
   let T2 = T*T;
@@ -44,7 +45,7 @@ function getNewMoonDay(k, timeZone){
   return INT(JdNew + 0.5 + timeZone/24);
 }
 
-// ===== Sun Longitude chuẩn =====
+// ===== SUN LONGITUDE (FIXED) =====
 function getSunLongitude(jdn, timeZone){
   let T = (jdn - 2451545.5 - timeZone/24)/36525;
   let T2 = T*T;
@@ -61,10 +62,10 @@ function getSunLongitude(jdn, timeZone){
   return INT(L/(PI/6));
 }
 
-// ===== Month 11 =====
+// ===== MONTH 11 (FIXED PRECISION) =====
 function getLunarMonth11(yy, timeZone){
-  let off = jdFromDate(31,12,yy) - 2415021;
-  let k = INT(off/29.530588853);
+  let off = jdFromDate(31,12,yy) - 2415021.076998695;
+  let k = INT(off / 29.530588853);
   let nm = getNewMoonDay(k, timeZone);
   let sunLong = getSunLongitude(nm, timeZone);
   if(sunLong >= 9){
@@ -73,7 +74,7 @@ function getLunarMonth11(yy, timeZone){
   return nm;
 }
 
-// ===== Leap Month =====
+// ===== LEAP MONTH =====
 function getLeapMonthOffset(a11, timeZone){
   let k = INT((a11 - 2415021.076998695)/29.530588853 + 0.5);
   let last = 0;
@@ -137,7 +138,7 @@ function convertSolar2Lunar(dd, mm, yy, timeZone=7){
   return { day: lunarDay, month: lunarMonth, year: lunarYear, leap };
 }
 
-// ===== RENDER =====
+// ===== RENDER TODAY =====
 const now = new Date();
 const dd = now.getDate();
 const mm = now.getMonth() + 1;
