@@ -1,4 +1,4 @@
-fetch("./lunar-data.json")
+fetch("./lunar-data-2026.json")
   .then(r => r.json())
   .then(data => {
 
@@ -18,4 +18,7 @@ fetch("./lunar-data.json")
         "Chưa có dữ liệu";
     }
 
+  })
+  .catch(e => {
+    document.body.innerHTML = "Lỗi load dataset";
   });
