@@ -2,13 +2,7 @@
 const PI = Math.PI;
 function INT(d){ return Math.floor(d); }
 
-// ===== DELTA T (rất quan trọng) =====
-function getDeltaT(year){
-  const t = (year - 2000) / 100;
-  return 64.7 + 64.5*t + 0.21*t*t; // xấp xỉ đủ dùng 1900–2100
-}
-
-// ===== JULIAN =====
+// ===== JULIAN DAY =====
 function jdFromDate(dd, mm, yy){
   let a = INT((14-mm)/12);
   let y = yy+4800-a;
@@ -17,7 +11,7 @@ function jdFromDate(dd, mm, yy){
          - INT(y/100) + INT(y/400) - 32045;
 }
 
-// ===== NEW MOON (có ΔT) =====
+// ===== NEW MOON =====
 function getNewMoonDay(k, timeZone){
   let T = k/1236.85;
   let T2 = T*T;
@@ -45,10 +39,7 @@ function getNewMoonDay(k, timeZone){
     - 0.0051*Math.sin((M+Mpr)*dr)
     - 0.0074*Math.sin((M-Mpr)*dr);
 
-  // ΔT correction
-  let deltaT = getDeltaT(2000 + T*100) / 86400;
-
-  let JdNew = Jd1 + C1 - deltaT;
+  let JdNew = Jd1 + C1;
 
   return INT(JdNew + 0.5 + timeZone/24);
 }
@@ -56,13 +47,12 @@ function getNewMoonDay(k, timeZone){
 // ===== SUN LONGITUDE =====
 function getSunLongitude(jdn, timeZone){
   let T = (jdn - 2451545.5 - timeZone/24)/36525;
-  let T2 = T*T;
   let dr = PI/180;
 
-  let M = 357.52910 + 35999.05030*T - 0.0001559*T2;
+  let M = 357.52910 + 35999.05030*T;
   let L0 = 280.46645 + 36000.76983*T;
 
-  let DL = (1.914600 - 0.004817*T)*Math.sin(dr*M)
+  let DL = 1.914600*Math.sin(dr*M)
     + 0.019993*Math.sin(2*dr*M);
 
   let L = (L0 + DL)*dr;
@@ -70,19 +60,20 @@ function getSunLongitude(jdn, timeZone){
   return INT(L/(PI/6));
 }
 
-// ===== MONTH 11 =====
+// ===== MONTH 11 (FIXED mốc chuẩn) =====
 function getLunarMonth11(yy, timeZone){
   let off = jdFromDate(31,12,yy) - 2415021.076998695;
   let k = INT(off/29.530588853);
   let nm = getNewMoonDay(k, timeZone);
   let sunLong = getSunLongitude(nm, timeZone);
+
   if(sunLong >= 9){
     nm = getNewMoonDay(k-1, timeZone);
   }
   return nm;
 }
 
-// ===== LEAP =====
+// ===== LEAP MONTH =====
 function getLeapMonthOffset(a11, timeZone){
   let k = INT((a11 - 2415021.076998695)/29.530588853 + 0.5);
   let last = 0;
@@ -145,19 +136,3 @@ function convertSolar2Lunar(dd, mm, yy, timeZone=7){
 
   return { day: lunarDay, month: lunarMonth, year: lunarYear, leap };
 }
-
-// ===== RENDER =====
-const now = new Date();
-const lunar = convertSolar2Lunar(
-  now.getDate(),
-  now.getMonth()+1,
-  now.getFullYear(),
-  7
-);
-
-document.getElementById("solar").innerText =
-  now.toLocaleDateString("vi-VN");
-
-document.getElementById("lunar").innerText =
-  `Âm: ${lunar.day}/${lunar.month}/${lunar.year}` +
-  (lunar.leap ? " (Nhuận)" : "");
