@@ -2,30 +2,37 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Lịch âm</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Âm lịch hôm nay</title>
+  <style>
+    body {
+      margin: 0;
+      background: #111;
+      color: #fff;
+      font-family: system-ui;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .box {
+      text-align: center;
+    }
+    .solar {
+      font-size: 28px;
+      font-weight: bold;
+    }
+    .lunar {
+      font-size: 18px;
+      margin-top: 8px;
+      opacity: 0.8;
+    }
+  </style>
 </head>
 <body>
 
-<div class="app">
-
-  <div class="today-box">
-    <div id="solarToday"></div>
-    <div id="lunarToday"></div>
-  </div>
-
-  <div class="header">
-    <button onclick="prevMonth()">←</button>
-    <div id="monthTitle"></div>
-    <button onclick="nextMonth()">→</button>
-  </div>
-
-  <div class="weekdays">
-    <div>T2</div><div>T3</div><div>T4</div>
-    <div>T5</div><div>T6</div><div>T7</div><div>CN</div>
-  </div>
-
-  <div id="calendar"></div>
+<div class="box">
+  <div id="solar" class="solar"></div>
+  <div id="lunar" class="lunar"></div>
 </div>
 
 <script src="lunar.js"></script>
