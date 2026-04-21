@@ -1,0 +1,29 @@
+body {
+  margin: 0;
+  background: #0f172a;
+  color: #fff;
+  font-family: sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.card {
+  background: #1e293b;
+  padding: 16px 20px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+
+#solar {
+  font-size: 14px;
+  color: #94a3b8;
+}
+
+#lunar {
+  font-size: 20px;
+  font-weight: bold;
+  margin-top: 6px;
+}
