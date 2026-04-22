@@ -259,8 +259,23 @@ async function getMonthCanChi(date){
   return CAN[canIndex] + " " + CHI[chiIndex];
 }
 
+// ===== CLOCK =====
+function runClock(){
+  setInterval(() => {
+    const now = getNow();
+
+    const h = String(now.getHours()).padStart(2,'0');
+    const m = String(now.getMinutes()).padStart(2,'0');
+
+    document.getElementById("clock").innerText = `${h}:${m}`;
+    document.getElementById("hourChi").innerText =
+      `Giờ ${getHourChiName(now)} (${getHourCanChi(now)})`;
+  }, 1000);
+}
+
 // ===== MAIN =====
 async function main(){
+  const now = getNow();
 
   // ===== DƯƠNG =====
   document.getElementById("solar").innerText =
@@ -301,3 +316,4 @@ async function main(){
 }
 
 main();
+runClock();
