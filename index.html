@@ -5,8 +5,6 @@
   <title>Lịch Âm & Bát Tự</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="stylesheet" href="./style.css">
-
   <style>
     body{
       font-family: Arial, sans-serif;
@@ -34,7 +32,7 @@
     }
 
     .main{
-      font-size:20px;
+      font-size:22px;
       font-weight:bold;
       margin:6px 0;
     }
@@ -59,22 +57,28 @@
     <div class="title">Lịch hôm nay</div>
 
     <div id="solar" class="main">loading...</div>
-    <div id="lunar" class="sub">loading...</div>
+    <div id="lunar" class="sub"></div>
 
     <div class="divider"></div>
 
     <div id="year" class="sub"></div>
     <div id="month" class="sub"></div>
     <div id="day" class="sub"></div>
-    <div id="hour" class="sub"></div>
+
+    <div class="divider"></div>
+
+    <div id="clock" class="main"></div>
+    <div id="hourChi" class="sub"></div>
 
     <div class="divider"></div>
 
     <div id="tietkhi" class="sub"></div>
   </div>
 
-  <!-- QUAN TRỌNG: thứ tự này -->
+  <!-- core âm lịch -->
   <script src="./lunar.js"></script>
+
+  <!-- widget -->
   <script src="./widget.js"></script>
 
 </body>
