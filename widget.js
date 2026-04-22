@@ -1,7 +1,9 @@
-// ===== TIMEZONE VN =====
-const now = new Date(
-  new Date().toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" })
-);
+// ===== TIME VN =====
+function getNow(){
+  return new Date(
+    new Date().toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" })
+  );
+}
 
 // ===== CAN CHI =====
 const CAN = ["Giáp","Ất","Bính","Đinh","Mậu","Kỷ","Canh","Tân","Nhâm","Quý"];
@@ -277,11 +279,9 @@ function runClock(){
 async function main(){
   const now = getNow();
 
-  // ===== DƯƠNG =====
   document.getElementById("solar").innerText =
     now.toLocaleDateString("vi-VN");
 
-  // ===== ÂM =====
   const l = convertSolar2Lunar(
     now.getDate(),
     now.getMonth()+1,
@@ -292,27 +292,17 @@ async function main(){
   document.getElementById("lunar").innerText =
     `Âm: ${l[0]}/${l[1]}/${l[2]}${l[3] ? " (nhuận)" : ""}`;
 
-  // ===== NĂM =====
   document.getElementById("year").innerText =
     "Năm: " + getYearCanChi(now.getFullYear());
 
-  // ===== THÁNG =====
-  const month = await getMonthCanChi(now);
   document.getElementById("month").innerText =
-    "Tháng: " + month;
+    "Tháng: " + await getMonthCanChi(now);
 
-  // ===== NGÀY =====
   document.getElementById("day").innerText =
     "Ngày: " + getDayCanChi(now);
 
-  // ===== GIỜ =====
-  document.getElementById("hour").innerText =
-    "Giờ: " + getHourCanChi(now);
-
-  // ===== TIẾT KHÍ =====
-  const tiet = await getTietKhiData(now);
   document.getElementById("tietkhi").innerText =
-    "Tiết khí: " + tiet;
+    "Tiết khí: " + await getTietKhi(now);
 }
 
 main();
