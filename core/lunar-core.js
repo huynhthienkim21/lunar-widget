@@ -220,7 +220,28 @@ module.exports = {
   getHourChi
 };
 
-module.exports = {
-  convertSolar2Lunar,
-  convertLunar2Solar
-};
+// ===== CAN CHI =====
+const CAN = ["Giáp","Ất","Bính","Đinh","Mậu","Kỷ","Canh","Tân","Nhâm","Quý"];
+const CHI = ["Tý","Sửu","Dần","Mão","Thìn","Tỵ","Ngọ","Mùi","Thân","Dậu","Tuất","Hợi"];
+
+function getYearCanChi(year){
+  return CAN[(year+6)%10] + " " + CHI[(year+8)%12];
+}
+
+function getDayCanChi(dd, mm, yy){
+  const jd = jdFromDate(dd, mm, yy);
+  return CAN[(jd+9)%10] + " " + CHI[(jd+1)%12];
+}
+
+function getHourChi(hour){
+  return CHI[Math.floor((hour+1)/2)%12];
+}
+
+function getHourCanChi(dd, mm, yy, hour){
+  const jd = jdFromDate(dd, mm, yy);
+  const dayCan = (jd+9)%10;
+  const chiIndex = Math.floor((hour+1)/2)%12;
+  const canIndex = (dayCan*2 + chiIndex)%10;
+
+  return CAN[canIndex] + " " + CHI[chiIndex];
+}
