@@ -193,8 +193,14 @@ function getYearCanChi(year){
   return CAN[(year+6)%10] + " " + CHI[(year+8)%12];
 }
 
-function getDayCanChi(dd, mm, yy){
-  const jd = jdFromDate(dd, mm, yy);
+function getDayCanChi(dd, mm, yy, hour){
+  let jd = jdFromDate(dd, mm, yy);
+
+  // 🔥 FIX CỐT LÕI: giờ Tý = ngày hôm trước
+  if(hour >= 23 || hour < 1){
+    jd -= 1;
+  }
+
   return CAN[(jd+9)%10] + " " + CHI[(jd+1)%12];
 }
 
