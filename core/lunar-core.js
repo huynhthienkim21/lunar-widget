@@ -204,19 +204,26 @@ function getHourChi(hour){
 
 function getHourCanChi(dd, mm, yy, hour){
   const jd = jdFromDate(dd, mm, yy);
-  const dayCan = (jd + 9) % 10; // giữ nguyên
-
+  const dayCan = (jd + 9) % 10;
   const chi = Math.floor((hour+1)/2)%12;
 
-  // bảng chuẩn theo bát tự
-  const startCan = [
-    0, 2, 4, 6, 8,
-    0, 2, 4, 6, 8
+  // bảng chuẩn thật (KHÔNG dùng công thức)
+  const table = [
+    [0,1,2,3,4,5,6,7,8,9,0,1], // Giáp
+    [2,3,4,5,6,7,8,9,0,1,2,3], // Ất
+    [4,5,6,7,8,9,0,1,2,3,4,5], // Bính
+    [6,7,8,9,0,1,2,3,4,5,6,7], // Đinh
+    [8,9,0,1,2,3,4,5,6,7,8,9], // Mậu
+    [0,1,2,3,4,5,6,7,8,9,0,1], // Kỷ
+    [2,3,4,5,6,7,8,9,0,1,2,3], // Canh
+    [4,5,6,7,8,9,0,1,2,3,4,5], // Tân
+    [6,7,8,9,0,1,2,3,4,5,6,7], // Nhâm
+    [8,9,0,1,2,3,4,5,6,7,8,9]  // Quý
   ];
 
-  const can = (startCan[dayCan] + chi) % 10;
+  const canIndex = table[dayCan][chi];
 
-  return CAN[can] + " " + CHI[chi];
+  return CAN[canIndex] + " " + CHI[chi];
 }
 
 module.exports = {
