@@ -193,23 +193,15 @@ function getYearCanChi(year){
   return CAN[(year+6)%10] + " " + CHI[(year+8)%12];
 }
 
-function getDayCanChi(dd, mm, yy){
-  const jd = jdFromDate(dd, mm, yy);
-  return CAN[(jd+9)%10] + " " + CHI[(jd+1)%12];
-}
-
-function getHourChi(hour){
-  return CHI[Math.floor((hour+1)/2)%12];
-}
-
 function getHourCanChi(dd, mm, yy, hour){
   const jd = jdFromDate(dd, mm, yy);
   const dayCanIndex = (jd + 9) % 10;
 
   const chiIndex = Math.floor((hour+1)/2)%12;
 
-  // bảng chuẩn
-  const startCan = [0,2,4,6,8,0,2,4,6,8]; 
+  // BẢNG CHUẨN
+  const startCan = [0,2,4,6,8,0,2,4,6,8];
+
   const canIndex = (startCan[dayCanIndex] + chiIndex) % 10;
 
   return CAN[canIndex] + " " + CHI[chiIndex];
