@@ -195,7 +195,7 @@ function getYearCanChi(year){
 
 function getDayCanChi(dd, mm, yy){
   const jd = jdFromDate(dd, mm, yy);
-  return CAN[(jd+10)%10] + " " + CHI[(jd+1)%12];
+  return CAN[(jd+9)%10] + " " + CHI[(jd+1)%12];
 }
 
 function getHourChi(hour){
