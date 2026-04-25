@@ -211,14 +211,6 @@ function getHourCanChi(dd, mm, yy, hour){
   return CAN[canIndex] + " " + CHI[chiIndex];
 }
 
-module.exports = {
-  convertSolar2Lunar,
-  convertLunar2Solar,
-  getYearCanChi,
-  getDayCanChi,
-  getHourCanChi,
-  getHourChi
-};
 
 // ===== CAN CHI =====
 const CAN = ["Giáp","Ất","Bính","Đinh","Mậu","Kỷ","Canh","Tân","Nhâm","Quý"];
@@ -245,3 +237,12 @@ function getHourCanChi(dd, mm, yy, hour){
 
   return CAN[canIndex] + " " + CHI[chiIndex];
 }
+
+module.exports = {
+  convertSolar2Lunar,
+  convertLunar2Solar,
+  getYearCanChi,
+  getDayCanChi,
+  getHourCanChi,
+  getHourChi
+};
