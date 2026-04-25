@@ -204,7 +204,7 @@ function getHourChi(hour){
 
 function getHourCanChi(dd, mm, yy, hour){
   const jd = jdFromDate(dd, mm, yy);
-  const dayCanIndex = (jd + 9) % 10;
+  const dayCanIndex = (jd + 10) % 10;
   const chiIndex = Math.floor((hour+1)/2)%12;
 
   const startCan = [0,2,4,6,8,0,2,4,6,8];
