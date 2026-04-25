@@ -5,7 +5,7 @@ const {
   getDayCanChi,
   getHourCanChi,
   getHourChi
-} = require('../core/lunar-core');
+} = require('../core/lunar-core.js');
 
 function getNowVN(){
   return new Date(
