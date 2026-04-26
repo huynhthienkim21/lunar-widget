@@ -14,19 +14,41 @@ function buildDateVN(dd, mm, yy, hour=0, minute=0){
 }
 
 // ===== LẤY TIẾT KHÍ HIỆN TẠI =====
-function getTietKhiIndex(date){
+function getMonthCanChi(date){
 
   const tietkhi = getTietKhi();
 
-  let index = -1;
+  // chỉ lấy "TIẾT"
+  const TIET = [
+    "Tiểu Hàn","Lập Xuân","Kinh Trập","Thanh Minh",
+    "Lập Hạ","Mang Chủng","Tiểu Thử","Lập Thu",
+    "Bạch Lộ","Hàn Lộ","Lập Đông","Đại Tuyết"
+  ];
 
-  for(let i=0;i<tietkhi.length;i++){
-    if(date >= new Date(tietkhi[i].time)){
+  // lọc danh sách tiết
+  const tietOnly = tietkhi.filter(t => TIET.includes(t.name));
+
+  let index = 0;
+
+  for(let i=0;i<tietOnly.length;i++){
+    if(date >= new Date(tietOnly[i].time)){
       index = i;
     }
   }
 
-  return index;
+  // mapping tháng
+  const monthChiIndex = (index + 1) % 12; // Dần = index 1
+
+  const baziYear = getBaZiYear(date);
+  const yearCanIndex = (baziYear + 6) % 10;
+
+  const startCan = [2,4,6,8,0,2,4,6,8,0];
+  const monthCanIndex = (startCan[yearCanIndex] + index) % 10;
+
+  return {
+    can: CAN[monthCanIndex],
+    chi: CHI[monthChiIndex]
+  };
 }
 
 // ===== XỬ LÝ NĂM BÁT TỰ (LẬP XUÂN) =====
