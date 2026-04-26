@@ -51,7 +51,7 @@ module.exports = (req, res) => {
     const dayCC = getDayCanChi(dd, mm, yy, hh);
     const hourCC = getHourCanChi(dd, mm, yy, hh);
     const hourChi = getHourChi(hh);
-
+    const monthCC = getMonthCanChi(dd, mm, yy, 7);
     return res.json({
       solar,
       lunar,
