@@ -1,6 +1,9 @@
 const {
   jdFromDate,
-  getSunLongitude,
+  getSunLongitudeDegree
+} = require('./astro-core.js');
+
+const {
   getYearCanChi,
   getDayCanChi,
   getHourCanChi,
@@ -33,17 +36,29 @@ const HIDDEN = {
   "Hợi":["Nhâm","Giáp"]
 };
 
-// ===== THÁNG (TIẾT KHÍ) =====
-function getMonthCanChi(dd, mm, yy, tz){
+// ===== THÁNG THEO TIẾT KHÍ (CHUẨN) =====
+function getMonthCanChi(dd, mm, yy){
+
   const jd = jdFromDate(dd, mm, yy);
-  const sl = getSunLongitude(jd, tz);
 
-  const monthIndex = Math.floor((sl + 1)/2)%12;
-  const monthChiIndex = (monthIndex + 2)%12;
+  // 🌞 độ mặt trời 0–360
+  const deg = getSunLongitudeDegree(jd);
 
-  const yearCanIndex = (yy+6)%10;
+  // 24 tiết khí (mỗi 15 độ)
+  const tiet = Math.floor(deg / 15);
+
+  // chia thành 12 tháng
+  const monthIndex = Math.floor((tiet + 1)/2) % 12;
+
+  // Dần = tháng 1
+  const monthChiIndex = (monthIndex + 2) % 12;
+
+  // Can tháng phụ thuộc can năm
+  const yearCanIndex = (yy + 6) % 10;
+
   const startCan = [2,4,6,8,0,2,4,6,8,0];
-  const monthCanIndex = (startCan[yearCanIndex] + monthIndex)%10;
+
+  const monthCanIndex = (startCan[yearCanIndex] + monthIndex) % 10;
 
   return {
     can: CAN[monthCanIndex],
@@ -51,8 +66,9 @@ function getMonthCanChi(dd, mm, yy, tz){
   };
 }
 
-// ===== DỤNG THẦN (đơn giản) =====
+// ===== DỤNG THẦN (CƠ BẢN NHƯNG DÙNG ĐƯỢC) =====
 function getDungThan(dayCan){
+
   const hanh = NGU_HANH[dayCan];
 
   const map = {
@@ -66,15 +82,18 @@ function getDungThan(dayCan){
   return map[hanh];
 }
 
-// ===== BUILD =====
-function buildBaZi(dd, mm, yy, hour, minute, tz){
+// ===== BUILD FULL BÁT TỰ =====
+function buildBaZi(dd, mm, yy, hour = 0, minute = 0){
 
+  // ===== TRỤ =====
   const year = getYearCanChi(yy).split(" ");
-  const month = getMonthCanChi(dd, mm, yy, tz);
+  const month = getMonthCanChi(dd, mm, yy);
   const day = getDayCanChi(dd, mm, yy, hour).split(" ");
   const hourCC = getHourCanChi(dd, mm, yy, hour).split(" ");
 
   return {
+
+    // ===== TỨ TRỤ =====
     tru:{
       nam:{can:year[0],chi:year[1]},
       thang:{can:month.can,chi:month.chi},
@@ -82,6 +101,7 @@ function buildBaZi(dd, mm, yy, hour, minute, tz){
       gio:{can:hourCC[0],chi:hourCC[1]}
     },
 
+    // ===== ẨN CAN =====
     an_can:{
       nam:HIDDEN[year[1]],
       thang:HIDDEN[month.chi],
@@ -89,6 +109,7 @@ function buildBaZi(dd, mm, yy, hour, minute, tz){
       gio:HIDDEN[hourCC[1]]
     },
 
+    // ===== NGŨ HÀNH =====
     ngu_hanh:{
       nam:NGU_HANH[year[0]],
       thang:NGU_HANH[month.can],
@@ -96,6 +117,7 @@ function buildBaZi(dd, mm, yy, hour, minute, tz){
       gio:NGU_HANH[hourCC[0]]
     },
 
+    // ===== DỤNG THẦN =====
     dung_than:getDungThan(day[0])
   };
 }
