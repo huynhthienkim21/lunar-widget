@@ -12,16 +12,17 @@ function jdFromDate(dd, mm, yy){
 }
 
 // ===== SUN LONGITUDE (FULL 360°) =====
-function getSunLongitudeDegree(jdn){
-  let T = (jdn - 2451545.0) / 36525;
+function getSunLongitudeDegree(jdn, timeZone = 7){
+
+  let T = (jdn - 2451545.5 - timeZone/24) / 36525;
   let T2 = T*T;
 
   let L0 = 280.46646 + 36000.76983*T;
   let M = 357.52911 + 35999.05029*T;
 
-  let C = (1.914602 - 0.004817*T)*Math.sin(M*PI/180)
-        + 0.019993*Math.sin(2*M*PI/180)
-        + 0.000289*Math.sin(3*M*PI/180);
+  let C = (1.914602 - 0.004817*T)*Math.sin(M*Math.PI/180)
+        + 0.019993*Math.sin(2*M*Math.PI/180)
+        + 0.000289*Math.sin(3*M*Math.PI/180);
 
   let trueLong = L0 + C;
 
