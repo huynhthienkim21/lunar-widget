@@ -1,67 +1,70 @@
-const {
-  jdFromDate,
-  getSunLongitudeDegree
-} = require('./astro-core.js');
-
+const { getTietKhi } = require('./cache.js');
 const {
   getYearCanChi,
   getDayCanChi,
-  getHourCanChi,
-  CAN,
-  CHI
+  getHourCanChi
 } = require('./lunar-core.js');
 
-// ===== NGŨ HÀNH =====
-const NGU_HANH = {
-  "Giáp":"Mộc","Ất":"Mộc",
-  "Bính":"Hỏa","Đinh":"Hỏa",
-  "Mậu":"Thổ","Kỷ":"Thổ",
-  "Canh":"Kim","Tân":"Kim",
-  "Nhâm":"Thủy","Quý":"Thủy"
-};
+const CAN = ["Giáp","Ất","Bính","Đinh","Mậu","Kỷ","Canh","Tân","Nhâm","Quý"];
+const CHI = ["Tý","Sửu","Dần","Mão","Thìn","Tỵ","Ngọ","Mùi","Thân","Dậu","Tuất","Hợi"];
 
-// ===== ẨN CAN =====
-const HIDDEN = {
-  "Tý":["Quý"],
-  "Sửu":["Kỷ","Quý","Tân"],
-  "Dần":["Giáp","Bính","Mậu"],
-  "Mão":["Ất"],
-  "Thìn":["Mậu","Ất","Quý"],
-  "Tỵ":["Bính","Mậu","Canh"],
-  "Ngọ":["Đinh","Kỷ"],
-  "Mùi":["Kỷ","Đinh","Ất"],
-  "Thân":["Canh","Nhâm","Mậu"],
-  "Dậu":["Tân"],
-  "Tuất":["Mậu","Tân","Đinh"],
-  "Hợi":["Nhâm","Giáp"]
-};
+// ===== SAFE DATE =====
+function buildDateVN(dd, mm, yy, hour=0, minute=0){
+  return new Date(`${yy}-${String(mm).padStart(2,'0')}-${String(dd).padStart(2,'0')}T${String(hour).padStart(2,'0')}:${String(minute).padStart(2,'0')}:00+07:00`);
+}
 
-// ===== THÁNG THEO TIẾT KHÍ (CHUẨN) =====
-function getMonthCanChi(dd, mm, yy){
+// ===== LẤY TIẾT KHÍ HIỆN TẠI =====
+function getTietKhiIndex(date){
 
- let jd = jdFromDate(dd, mm, yy);
+  const tietkhi = getTietKhi();
 
-// shift timezone VN
-jd = jd - 0.5 + 7/24;
-jd = Math.floor(jd);
+  let index = -1;
 
-  // 🌞 độ mặt trời 0–360
-  const deg = getSunLongitudeDegree(jd, 7);
+  for(let i=0;i<tietkhi.length;i++){
+    if(date >= new Date(tietkhi[i].time)){
+      index = i;
+    }
+  }
 
-  // 24 tiết khí (mỗi 15 độ)
-  const tiet = Math.floor(deg / 15);
+  return index;
+}
 
-  // chia thành 12 tháng
-  const monthIndex = Math.floor((tiet + 1)/2) % 12;
+// ===== XỬ LÝ NĂM BÁT TỰ (LẬP XUÂN) =====
+function getBaZiYear(date){
 
-  // Dần = tháng 1
+  const tietkhi = getTietKhi();
+
+  const lapXuan = tietkhi.find(t => t.name === "Lập Xuân");
+
+  if(!lapXuan){
+    return date.getFullYear(); // fallback
+  }
+
+  if(date < new Date(lapXuan.time)){
+    return date.getFullYear() - 1;
+  }
+
+  return date.getFullYear();
+}
+
+// ===== THÁNG THEO TIẾT KHÍ =====
+function getMonthCanChi(date){
+
+  const index = getTietKhiIndex(date);
+
+  // ❗ nếu chưa tới tiết khí đầu năm → coi là tháng 12 năm trước
+  let monthIndex = Math.floor(index / 2);
+
+  if(index < 0){
+    monthIndex = 11;
+  }
+
   const monthChiIndex = (monthIndex + 2) % 12;
 
-  // Can tháng phụ thuộc can năm
-  const yearCanIndex = (yy + 6) % 10;
+  const baziYear = getBaZiYear(date);
+  const yearCanIndex = (baziYear + 6) % 10;
 
-  const startCan = [0,2,4,6,8,0,2,4,6,8];
-
+  const startCan = [2,4,6,8,0,2,4,6,8,0];
   const monthCanIndex = (startCan[yearCanIndex] + monthIndex) % 10;
 
   return {
@@ -70,59 +73,31 @@ jd = Math.floor(jd);
   };
 }
 
-// ===== DỤNG THẦN (CƠ BẢN NHƯNG DÙNG ĐƯỢC) =====
-function getDungThan(dayCan){
+// ===== BUILD BÁT TỰ =====
+function buildBaZi(dd, mm, yy, hour=0, minute=0){
 
-  const hanh = NGU_HANH[dayCan];
+  const date = buildDateVN(dd, mm, yy, hour, minute);
 
-  const map = {
-    "Mộc":"Thủy",
-    "Hỏa":"Mộc",
-    "Thổ":"Hỏa",
-    "Kim":"Thổ",
-    "Thủy":"Kim"
-  };
+  // ===== NĂM =====
+  const baziYear = getBaZiYear(date);
+  const year = getYearCanChi(baziYear).split(" ");
 
-  return map[hanh];
-}
+  // ===== THÁNG =====
+  const month = getMonthCanChi(date);
 
-// ===== BUILD FULL BÁT TỰ =====
-function buildBaZi(dd, mm, yy, hour = 0, minute = 0){
-
-  // ===== TRỤ =====
-  const year = getYearCanChi(yy).split(" ");
-  const month = getMonthCanChi(dd, mm, yy);
+  // ===== NGÀY =====
   const day = getDayCanChi(dd, mm, yy, hour).split(" ");
+
+  // ===== GIỜ =====
   const hourCC = getHourCanChi(dd, mm, yy, hour).split(" ");
 
   return {
-
-    // ===== TỨ TRỤ =====
     tru:{
       nam:{can:year[0],chi:year[1]},
       thang:{can:month.can,chi:month.chi},
       ngay:{can:day[0],chi:day[1]},
       gio:{can:hourCC[0],chi:hourCC[1]}
-    },
-
-    // ===== ẨN CAN =====
-    an_can:{
-      nam:HIDDEN[year[1]],
-      thang:HIDDEN[month.chi],
-      ngay:HIDDEN[day[1]],
-      gio:HIDDEN[hourCC[1]]
-    },
-
-    // ===== NGŨ HÀNH =====
-    ngu_hanh:{
-      nam:NGU_HANH[year[0]],
-      thang:NGU_HANH[month.can],
-      ngay:NGU_HANH[day[0]],
-      gio:NGU_HANH[hourCC[0]]
-    },
-
-    // ===== DỤNG THẦN =====
-    dung_than:getDungThan(day[0])
+    }
   };
 }
 
