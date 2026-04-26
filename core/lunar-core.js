@@ -43,7 +43,7 @@ function getSunLongitude(jdn, timeZone){
   L = L * dr;
   L = L - Math.PI*2 * Math.floor(L/(Math.PI*2));
 
-  return Math.floor(L / Math.PI * 6);
+  return Math.floor(L / Math.PI * 12);
 }
 
 // ===== NEW MOON =====
@@ -244,7 +244,13 @@ function getMonthCanChi(dd, mm, yy, timeZone){
   const sunLong = getSunLongitude(jd, timeZone);
 
   // 📍 xác định tháng (Địa Chi)
-  const monthChiIndex = (sunLong + 2) % 12;
+ const tietIndex = getSunLongitude(jd, timeZone);
+
+// mỗi 2 tiết = 1 tháng
+const monthIndex = Math.floor((tietIndex + 1) / 2) % 12;
+
+// map chuẩn Dần = 0
+const monthChiIndex = (monthIndex + 2) % 12;
 
   // 📍 CAN NĂM
   const yearCanIndex = (yy + 6) % 10;
