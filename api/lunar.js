@@ -6,7 +6,7 @@ const {
   getHourCanChi,
   getHourChi
 } = require('../core/lunar-core.js');
-
+const { getMonthCanChi } = require('../core/lunar-core.js');
 function getNowVN(){
   return new Date(
     new Date().toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" })
