@@ -258,14 +258,15 @@ function getMonthCanChi(dd, mm, yy, timeZone){
 }
 
 module.exports = {
+  jdFromDate,
+  jdToDate,
+  getSunLongitude,
+
   convertSolar2Lunar,
   convertLunar2Solar,
+
   getYearCanChi,
   getDayCanChi,
   getHourCanChi,
   getHourChi
-};
-module.exports = {
-  ...
-  getMonthCanChi
 };
