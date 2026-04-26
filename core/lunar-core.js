@@ -26,177 +26,36 @@ function jdToDate(jd){
   return [day, month, year];
 }
 
-// ===== SUN LONGITUDE =====
+// ===== SUN LONGITUDE (24 TIẾT KHÍ) =====
 function getSunLongitude(jdn, timeZone){
   let T = (jdn - 2451545.5 - timeZone/24) / 36525;
-  let T2 = T*T;
   let dr = Math.PI/180;
 
-  let M = 357.52910 + 35999.05030*T - 0.0001559*T2;
+  let M = 357.52910 + 35999.05030*T;
   let L0 = 280.46645 + 36000.76983*T;
 
-  let DL = (1.914600 - 0.004817*T)*Math.sin(dr*M)
-         + (0.019993 - 0.000101*T)*Math.sin(2*dr*M)
-         + 0.000290*Math.sin(3*dr*M);
+  let DL = 1.9146*Math.sin(dr*M)
+         + 0.019993*Math.sin(2*dr*M);
 
-  let L = L0 + DL;
-  L = L * dr;
+  let L = (L0 + DL) * dr;
   L = L - Math.PI*2 * Math.floor(L/(Math.PI*2));
 
-  return Math.floor(L / Math.PI * 12);
-}
-
-// ===== NEW MOON =====
-function getNewMoonDay(k, timeZone){
-  let T = k / 1236.85;
-  let T2 = T*T;
-  let T3 = T2*T;
-  let dr = Math.PI/180;
-
-  let Jd1 = 2415020.75933 + 29.53058868*k
-    + 0.0001178*T2 - 0.000000155*T3;
-
-  Jd1 += 0.00033 * Math.sin((166.56 + 132.87*T - 0.009173*T2)*dr);
-
-  let M = 359.2242 + 29.10535608*k - 0.0000333*T2 - 0.00000347*T3;
-  let Mpr = 306.0253 + 385.81691806*k + 0.0107306*T2 + 0.00001236*T3;
-  let F = 21.2964 + 390.67050646*k - 0.0016528*T2 - 0.00000239*T3;
-
-  let C1 = (0.1734 - 0.000393*T)*Math.sin(M*dr)
-    + 0.0021*Math.sin(2*dr*M)
-    - 0.4068*Math.sin(Mpr*dr)
-    + 0.0161*Math.sin(2*dr*Mpr)
-    - 0.0004*Math.sin(3*dr*Mpr)
-    + 0.0104*Math.sin(2*dr*F)
-    - 0.0051*Math.sin((M+Mpr)*dr)
-    - 0.0074*Math.sin((M-Mpr)*dr);
-
-  let deltaT = (T < -11)
-    ? 0.001 + 0.000839*T + 0.0002261*T2
-    : -0.000278 + 0.000265*T;
-
-  return Math.floor(Jd1 + C1 - deltaT + 0.5 + timeZone/24);
-}
-
-// ===== MONTH 11 =====
-function getLunarMonth11(yy, timeZone){
-  let off = jdFromDate(31,12,yy) - 2415021;
-  let k = Math.floor(off / 29.530588853);
-  let nm = getNewMoonDay(k, timeZone);
-
-  let sunLong = getSunLongitude(nm, timeZone);
-  if(sunLong >= 9){
-    nm = getNewMoonDay(k-1, timeZone);
-  }
-
-  return nm;
-}
-
-// ===== LEAP =====
-function getLeapMonthOffset(a11, timeZone){
-  let k = Math.floor((a11 - 2415021.076998695)/29.530588853 + 0.5);
-  let last = 0;
-  let i = 1;
-  let arc = getSunLongitude(getNewMoonDay(k+i, timeZone), timeZone);
-
-  do{
-    last = arc;
-    i++;
-    arc = getSunLongitude(getNewMoonDay(k+i, timeZone), timeZone);
-  } while(arc != last && i < 14);
-
-  return i-1;
-}
-
-// ===== SOLAR → LUNAR =====
-function convertSolar2Lunar(dd, mm, yy, timeZone){
-  let dayNumber = jdFromDate(dd,mm,yy);
-  let k = Math.floor((dayNumber - 2415021.076998695)/29.530588853);
-  let monthStart = getNewMoonDay(k+1, timeZone);
-
-  if(monthStart > dayNumber){
-    monthStart = getNewMoonDay(k, timeZone);
-  }
-
-  let a11 = getLunarMonth11(yy, timeZone);
-  let b11 = a11;
-  let lunarYear;
-
-  if(a11 >= monthStart){
-    lunarYear = yy;
-    a11 = getLunarMonth11(yy-1, timeZone);
-  } else {
-    lunarYear = yy + 1;
-    b11 = getLunarMonth11(yy+1, timeZone);
-  }
-
-  let lunarDay = dayNumber - monthStart + 1;
-  let diff = Math.floor((monthStart - a11)/29);
-  let lunarLeap = 0;
-  let lunarMonth = diff + 11;
-
-  if(b11 - a11 > 365){
-    let leapDiff = getLeapMonthOffset(a11, timeZone);
-    if(diff >= leapDiff){
-      lunarMonth = diff + 10;
-      if(diff == leapDiff) lunarLeap = 1;
-    }
-  }
-
-  if(lunarMonth > 12) lunarMonth -= 12;
-  if(lunarMonth >= 11 && diff < 4) lunarYear -= 1;
-
-  return [lunarDay, lunarMonth, lunarYear, lunarLeap];
-}
-
-// ===== LUNAR → SOLAR =====
-function convertLunar2Solar(lunarDay, lunarMonth, lunarYear, lunarLeap, timeZone){
-  let k, a11, b11, off, leapOff, leapMonth, monthStart;
-
-  if(lunarMonth < 11){
-    a11 = getLunarMonth11(lunarYear-1, timeZone);
-    b11 = getLunarMonth11(lunarYear, timeZone);
-  } else {
-    a11 = getLunarMonth11(lunarYear, timeZone);
-    b11 = getLunarMonth11(lunarYear+1, timeZone);
-  }
-
-  off = lunarMonth - 11;
-  if(off < 0) off += 12;
-
-  if(b11 - a11 > 365){
-    leapOff = getLeapMonthOffset(a11, timeZone);
-    leapMonth = leapOff - 2;
-    if(leapMonth < 0) leapMonth += 12;
-
-    if(lunarLeap != 0 && lunarMonth != leapMonth){
-      return [0,0,0];
-    }
-    else if(lunarLeap != 0 || off >= leapOff){
-      off += 1;
-    }
-  }
-
-  k = Math.floor(0.5 + (a11 - 2415021.076998695)/29.530588853);
-  monthStart = getNewMoonDay(k + off, timeZone);
-
-  let jd = monthStart + lunarDay - 1;
-
-  return jdToDate(jd);
+  return Math.floor(L / Math.PI * 12); // 🔥 24 tiết khí
 }
 
 // ===== CAN CHI =====
 const CAN = ["Giáp","Ất","Bính","Đinh","Mậu","Kỷ","Canh","Tân","Nhâm","Quý"];
 const CHI = ["Tý","Sửu","Dần","Mão","Thìn","Tỵ","Ngọ","Mùi","Thân","Dậu","Tuất","Hợi"];
 
+// ===== NĂM =====
 function getYearCanChi(year){
   return CAN[(year+6)%10] + " " + CHI[(year+8)%12];
 }
 
+// ===== NGÀY (fix giờ Tý) =====
 function getDayCanChi(dd, mm, yy, hour){
   let jd = jdFromDate(dd, mm, yy);
 
-  // 🔥 FIX CỐT LÕI: giờ Tý = ngày hôm trước
   if(hour >= 23 || hour < 1){
     jd -= 1;
   }
@@ -204,75 +63,35 @@ function getDayCanChi(dd, mm, yy, hour){
   return CAN[(jd+9)%10] + " " + CHI[(jd+1)%12];
 }
 
-function getHourChi(hour){
-  return CHI[Math.floor((hour+1)/2)%12];
-}
-
+// ===== GIỜ =====
 function getHourCanChi(dd, mm, yy, hour){
   let jd = jdFromDate(dd, mm, yy);
 
-  // 🔥 FIX chuẩn bát tự
   if(hour >= 23 || hour < 1){
     jd -= 1;
   }
 
-  const dayCan = (jd + 9) % 10;
+  const dayCan = (jd+9)%10;
   const chi = Math.floor((hour+1)/2)%12;
 
-  const hourCanTable = [
-    [0,1,2,3,4,5,6,7,8,9,0,1],
-    [2,3,4,5,6,7,8,9,0,1,2,3],
-    [4,5,6,7,8,9,0,1,2,3,4,5],
-    [6,7,8,9,0,1,2,3,4,5,6,7],
-    [8,9,0,1,2,3,4,5,6,7,8,9],
-    [0,1,2,3,4,5,6,7,8,9,0,1],
-    [2,3,4,5,6,7,8,9,0,1,2,3],
-    [4,5,6,7,8,9,0,1,2,3,4,5],
-    [6,7,8,9,0,1,2,3,4,5,6,7],
-    [8,9,0,1,2,3,4,5,6,7,8,9]
-  ];
+  const startCan = [0,2,4,6,8,0,2,4,6,8];
+  const can = (startCan[dayCan] + chi) % 10;
 
-  const canIndex = hourCanTable[dayCan][chi];
-
-  return CAN[canIndex] + " " + CHI[chi];
+  return CAN[can] + " " + CHI[chi];
 }
 
-function getMonthCanChi(dd, mm, yy, timeZone){
-  const jd = jdFromDate(dd, mm, yy);
-
-  // 🌞 lấy tiết khí
-  const sunLong = getSunLongitude(jd, timeZone);
-
-  // 📍 xác định tháng (Địa Chi)
- const tietIndex = getSunLongitude(jd, timeZone);
-
-// mỗi 2 tiết = 1 tháng
-const monthIndex = Math.floor((tietIndex + 1) / 2) % 12;
-
-// map chuẩn Dần = 0
-const monthChiIndex = (monthIndex + 2) % 12;
-
-  // 📍 CAN NĂM
-  const yearCanIndex = (yy + 6) % 10;
-
-  // bảng chuẩn
-  const monthStartCan = [2,4,6,8,0,2,4,6,8,0];
-
-  const monthCanIndex = (monthStartCan[yearCanIndex] + monthChiIndex) % 10;
-
-  return CAN[monthCanIndex] + " " + CHI[monthChiIndex];
+function getHourChi(hour){
+  return CHI[Math.floor((hour+1)/2)%12];
 }
 
 module.exports = {
   jdFromDate,
   jdToDate,
   getSunLongitude,
-
-  convertSolar2Lunar,
-  convertLunar2Solar,
-
   getYearCanChi,
   getDayCanChi,
   getHourCanChi,
-  getHourChi
+  getHourChi,
+  CAN,
+  CHI
 };
