@@ -237,6 +237,26 @@ function getHourCanChi(dd, mm, yy, hour){
   return CAN[canIndex] + " " + CHI[chi];
 }
 
+function getMonthCanChi(dd, mm, yy, timeZone){
+  const jd = jdFromDate(dd, mm, yy);
+
+  // 🌞 lấy tiết khí
+  const sunLong = getSunLongitude(jd, timeZone);
+
+  // 📍 xác định tháng (Địa Chi)
+  const monthChiIndex = (sunLong + 2) % 12;
+
+  // 📍 CAN NĂM
+  const yearCanIndex = (yy + 6) % 10;
+
+  // bảng chuẩn
+  const monthStartCan = [2,4,6,8,0,2,4,6,8,0];
+
+  const monthCanIndex = (monthStartCan[yearCanIndex] + monthChiIndex) % 10;
+
+  return CAN[monthCanIndex] + " " + CHI[monthChiIndex];
+}
+
 module.exports = {
   convertSolar2Lunar,
   convertLunar2Solar,
@@ -244,4 +264,8 @@ module.exports = {
   getDayCanChi,
   getHourCanChi,
   getHourChi
+};
+module.exports = {
+  ...
+  getMonthCanChi
 };
