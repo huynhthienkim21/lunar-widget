@@ -39,10 +39,14 @@ const HIDDEN = {
 // ===== THÁNG THEO TIẾT KHÍ (CHUẨN) =====
 function getMonthCanChi(dd, mm, yy){
 
-  const jd = jdFromDate(dd, mm, yy);
+ let jd = jdFromDate(dd, mm, yy);
+
+// shift timezone VN
+jd = jd - 0.5 + 7/24;
+jd = Math.floor(jd);
 
   // 🌞 độ mặt trời 0–360
-  const deg = getSunLongitudeDegree(jd);
+  const deg = getSunLongitudeDegree(jd, 7);
 
   // 24 tiết khí (mỗi 15 độ)
   const tiet = Math.floor(deg / 15);
@@ -56,7 +60,7 @@ function getMonthCanChi(dd, mm, yy){
   // Can tháng phụ thuộc can năm
   const yearCanIndex = (yy + 6) % 10;
 
-  const startCan = [2,4,6,8,0,2,4,6,8,0];
+  const startCan = [0,2,4,6,8,0,2,4,6,8];
 
   const monthCanIndex = (startCan[yearCanIndex] + monthIndex) % 10;
 
