@@ -1,4 +1,4 @@
-const { getTietKhi } = require('./cache.js');
+const { getTietKhi } = require('./dataset');
 const {
   getYearCanChi,
   getDayCanChi,
@@ -16,7 +16,7 @@ function buildDateVN(dd, mm, yy, hour=0, minute=0){
 // ===== LẤY TIẾT KHÍ HIỆN TẠI =====
 function getMonthCanChi(date){
 
-  const tietkhi = getTietKhi();
+  const { getTietKhi } = require('./dataset');
 
   // chỉ lấy "TIẾT"
   const TIET = [
