@@ -3,126 +3,83 @@ const {
   getYearCanChi,
   getDayCanChi,
   getHourCanChi
-} = require('./lunar-core.js');
+} = require('./lunar-core');
 
 const CAN = ["Giáp","Ất","Bính","Đinh","Mậu","Kỷ","Canh","Tân","Nhâm","Quý"];
 const CHI = ["Tý","Sửu","Dần","Mão","Thìn","Tỵ","Ngọ","Mùi","Thân","Dậu","Tuất","Hợi"];
 
-// ===== SAFE DATE =====
-function buildDateVN(dd, mm, yy, hour=0, minute=0){
-  return new Date(`${yy}-${String(mm).padStart(2,'0')}-${String(dd).padStart(2,'0')}T${String(hour).padStart(2,'0')}:${String(minute).padStart(2,'0')}:00+07:00`);
+// ===== YEAR (LẬP XUÂN) =====
+function getBaZiYear(date){
+  const tk = getTietKhi(date.getFullYear());
+  const lapXuan = tk.find(t => t.name === "Lập Xuân");
+
+  if(!lapXuan) return date.getFullYear();
+
+  return date < new Date(lapXuan.time)
+    ? date.getFullYear() - 1
+    : date.getFullYear();
 }
 
-// ===== LẤY TIẾT KHÍ HIỆN TẠI =====
+// ===== MONTH =====
 function getMonthCanChi(date){
+  const tk = getTietKhi(date.getFullYear());
 
-  const { getTietKhi } = require('./dataset');
-
-  // chỉ lấy "TIẾT"
   const TIET = [
     "Tiểu Hàn","Lập Xuân","Kinh Trập","Thanh Minh",
     "Lập Hạ","Mang Chủng","Tiểu Thử","Lập Thu",
     "Bạch Lộ","Hàn Lộ","Lập Đông","Đại Tuyết"
   ];
 
-  // lọc danh sách tiết
-  const tietOnly = tietkhi.filter(t => TIET.includes(t.name));
+  const tiet = tk.filter(t => TIET.includes(t.name));
 
   let index = 0;
 
-  for(let i=0;i<tietOnly.length;i++){
-    if(date >= new Date(tietOnly[i].time)){
+  for(let i=0;i<tiet.length;i++){
+    if(date >= new Date(tiet[i].time)){
       index = i;
     }
   }
 
-  // mapping tháng
-  const monthChiIndex = (index + 1) % 12; // Dần = index 1
+  const chiIndex = (index + 1) % 12;
 
-  const baziYear = getBaZiYear(date);
-  const yearCanIndex = (baziYear + 6) % 10;
+  const year = getBaZiYear(date);
+  const yearCan = (year+6)%10;
 
   const startCan = [2,4,6,8,0,2,4,6,8,0];
-  const monthCanIndex = (startCan[yearCanIndex] + index) % 10;
+  const canIndex = (startCan[yearCan] + index) % 10;
 
   return {
-    can: CAN[monthCanIndex],
-    chi: CHI[monthChiIndex]
+    can: CAN[canIndex],
+    chi: CHI[chiIndex]
   };
 }
 
-// ===== XỬ LÝ NĂM BÁT TỰ (LẬP XUÂN) =====
-function getBaZiYear(date){
+// ===== BUILD =====
+function buildBaZi(dd, mm, yy, hour=0){
 
-  const tietkhi = getTietKhi();
+  const date = new Date(`${yy}-${mm}-${dd}T${hour}:00:00+07:00`);
 
-  const lapXuan = tietkhi.find(t => t.name === "Lập Xuân");
+  const yearRaw = getYearCanChi(getBaZiYear(date));
+  const dayRaw = getDayCanChi(dd, mm, yy);
+  const hourRaw = getHourCanChi(dd, mm, yy, hour);
 
-  if(!lapXuan){
-    return date.getFullYear(); // fallback
+  if(!yearRaw || !dayRaw || !hourRaw){
+    throw new Error("CanChi null");
   }
 
-  if(date < new Date(lapXuan.time)){
-    return date.getFullYear() - 1;
-  }
-
-  return date.getFullYear();
-}
-
-// ===== THÁNG THEO TIẾT KHÍ =====
-function getMonthCanChi(date){
-
-  const index = getTietKhiIndex(date);
-
-  // ❗ nếu chưa tới tiết khí đầu năm → coi là tháng 12 năm trước
-  let monthIndex = Math.floor(index / 2);
-
-  if(index < 0){
-    monthIndex = 11;
-  }
-
-  const monthChiIndex = (monthIndex + 2) % 12;
-
-  const baziYear = getBaZiYear(date);
-  const yearCanIndex = (baziYear + 6) % 10;
-
-  const startCan = [2,4,6,8,0,2,4,6,8,0];
-  const monthCanIndex = (startCan[yearCanIndex] + monthIndex) % 10;
-
-  return {
-    can: CAN[monthCanIndex],
-    chi: CHI[monthChiIndex]
-  };
-}
-
-// ===== BUILD BÁT TỰ =====
-function buildBaZi(dd, mm, yy, hour=0, minute=0){
-
-  const date = buildDateVN(dd, mm, yy, hour, minute);
-
-  // ===== NĂM =====
-  const baziYear = getBaZiYear(date);
-  const year = getYearCanChi(baziYear).split(" ");
-
-  // ===== THÁNG =====
+  const year = yearRaw.split(" ");
+  const day = dayRaw.split(" ");
+  const hourCC = hourRaw.split(" ");
   const month = getMonthCanChi(date);
-
-  // ===== NGÀY =====
-  const day = getDayCanChi(dd, mm, yy, hour).split(" ");
-
-  // ===== GIỜ =====
-  const hourCC = getHourCanChi(dd, mm, yy, hour).split(" ");
 
   return {
     tru:{
       nam:{can:year[0],chi:year[1]},
-      thang:{can:month.can,chi:month.chi},
+      thang:month,
       ngay:{can:day[0],chi:day[1]},
       gio:{can:hourCC[0],chi:hourCC[1]}
     }
   };
 }
 
-module.exports = {
-  buildBaZi
-};
+module.exports = { buildBaZi };
