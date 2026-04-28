@@ -33,24 +33,11 @@ const HIDDEN = {
   "Hợi":["Nhâm","Giáp"]
 };
 
-// ===== NGŨ HÀNH SINH KHẮC =====
-const SINH = {
-  "Mộc":"Hỏa",
-  "Hỏa":"Thổ",
-  "Thổ":"Kim",
-  "Kim":"Thủy",
-  "Thủy":"Mộc"
-};
+// ===== SINH KHẮC =====
+const SINH = { "Mộc":"Hỏa","Hỏa":"Thổ","Thổ":"Kim","Kim":"Thủy","Thủy":"Mộc" };
+const KHAC = { "Mộc":"Thổ","Thổ":"Thủy","Thủy":"Hỏa","Hỏa":"Kim","Kim":"Mộc" };
 
-const KHAC = {
-  "Mộc":"Thổ",
-  "Thổ":"Thủy",
-  "Thủy":"Hỏa",
-  "Hỏa":"Kim",
-  "Kim":"Mộc"
-};
-
-// ===== MÙA → NGŨ HÀNH VƯỢNG =====
+// ===== MÙA =====
 const SEASON = {
   "Dần":"Mộc","Mão":"Mộc",
   "Tỵ":"Hỏa","Ngọ":"Hỏa",
@@ -63,9 +50,6 @@ const SEASON = {
 function getBaZiYear(date){
   const tk = getTietKhi(date.getFullYear());
   const lapXuan = tk.find(t => t.name === "Lập Xuân");
-
-  if(!lapXuan) return date.getFullYear();
-
   return date < new Date(lapXuan.time)
     ? date.getFullYear() - 1
     : date.getFullYear();
@@ -85,9 +69,7 @@ function getMonthCanChi(date){
 
   let index = 0;
   for(let i=0;i<tiet.length;i++){
-    if(date >= new Date(tiet[i].time)){
-      index = i;
-    }
+    if(date >= new Date(tiet[i].time)) index = i;
   }
 
   const chiIndex = (index + 1) % 12;
@@ -98,64 +80,7 @@ function getMonthCanChi(date){
   const startCan = [2,4,6,8,0,2,4,6,8,0];
   const canIndex = (startCan[yearCan] + index) % 10;
 
-  return {
-    can: CAN[canIndex],
-    chi: CHI[chiIndex]
-  };
-}
-
-// ===== ẨN CAN =====
-function getHidden(tru){
-  return {
-    nam: HIDDEN[tru.nam.chi],
-    thang: HIDDEN[tru.thang.chi],
-    ngay: HIDDEN[tru.ngay.chi],
-    gio: HIDDEN[tru.gio.chi]
-  };
-}
-
-// ===== NGŨ HÀNH =====
-function getNguHanh(tru){
-  return {
-    nam: NGU_HANH[tru.nam.can],
-    thang: NGU_HANH[tru.thang.can],
-    ngay: NGU_HANH[tru.ngay.can],
-    gio: NGU_HANH[tru.gio.can]
-  };
-}
-
-// ===== TÍNH VƯỢNG SUY =====
-function evaluateStrength(tru){
-  const day = NGU_HANH[tru.ngay.can];
-  const season = SEASON[tru.thang.chi];
-
-  let score = 0;
-
-  if(day === season) score += 2; // vượng mùa
-  if(SINH[season] === day) score += 1; // được sinh
-  if(KHAC[season] === day) score -= 1; // bị khắc
-
-  return score;
-}
-
-// ===== DỤNG THẦN CAO CẤP =====
-function getDungThanAdvanced(tru){
-
-  const day = NGU_HANH[tru.ngay.can];
-  const strength = evaluateStrength(tru);
-
-  // nhật chủ mạnh
-  if(strength >= 2){
-    return KHAC[day]; // lấy hành khắc để tiết
-  }
-
-  // nhật chủ yếu
-  if(strength <= 0){
-    return SINH[day]; // lấy hành sinh để trợ
-  }
-
-  // trung hòa
-  return SINH[day];
+  return { can: CAN[canIndex], chi: CHI[chiIndex] };
 }
 
 // ===== BUILD =====
@@ -163,31 +88,84 @@ function buildBaZi(dd, mm, yy, hour=0){
 
   const date = new Date(`${yy}-${mm}-${dd}T${hour}:00:00+07:00`);
 
-  const yearRaw = getYearCanChi(getBaZiYear(date));
-  const dayRaw = getDayCanChi(dd, mm, yy);
-  const hourRaw = getHourCanChi(dd, mm, yy, hour);
-
-  const year = yearRaw.split(" ");
-  const day = dayRaw.split(" ");
-  const hourCC = hourRaw.split(" ");
+  const yearRaw = getYearCanChi(getBaZiYear(date)).split(" ");
+  const dayRaw = getDayCanChi(dd, mm, yy).split(" ");
+  const hourRaw = getHourCanChi(dd, mm, yy, hour).split(" ");
   const month = getMonthCanChi(date);
 
   const tru = {
-    nam:{can:year[0],chi:year[1]},
+    nam:{can:yearRaw[0],chi:yearRaw[1]},
     thang:month,
-    ngay:{can:day[0],chi:day[1]},
-    gio:{can:hourCC[0],chi:hourCC[1]}
+    ngay:{can:dayRaw[0],chi:dayRaw[1]},
+    gio:{can:hourRaw[0],chi:hourRaw[1]}
   };
 
-  const an_can = getHidden(tru);
-  const ngu_hanh = getNguHanh(tru);
-  const dung_than = getDungThanAdvanced(tru);
+  return analyze(tru);
+}
+
+// ===== PHÂN TÍCH =====
+function analyze(tru){
+
+  const elements = { Mộc:0, Hỏa:0, Thổ:0, Kim:0, Thủy:0 };
+
+  // ===== thiên can =====
+  Object.values(tru).forEach(p=>{
+    elements[ NGU_HANH[p.can] ] += 10;
+  });
+
+  // ===== ẩn can =====
+  Object.values(tru).forEach(p=>{
+    HIDDEN[p.chi].forEach(h=>{
+      elements[ NGU_HANH[h] ] += 5;
+    });
+  });
+
+  // ===== mùa =====
+  const season = SEASON[tru.thang.chi];
+  elements[season] += 15;
+
+  const dayElement = NGU_HANH[tru.ngay.can];
+
+  // ===== tính thân vượng / nhược =====
+  let support = 0;
+  let oppose = 0;
+
+  Object.keys(elements).forEach(e=>{
+    if(e === dayElement || SINH[e] === dayElement){
+      support += elements[e];
+    } else if(KHAC[e] === dayElement){
+      oppose += elements[e];
+    }
+  });
+
+  const strength = support - oppose;
+
+  // ===== chọn dụng thần =====
+  let dung_than;
+  let hy_than;
+
+  if(strength > 20){
+    // quá mạnh → tiết
+    dung_than = KHAC[dayElement];
+    hy_than = SINH[KHAC[dayElement]];
+  }
+  else if(strength < -20){
+    // quá yếu → sinh
+    dung_than = SINH[dayElement];
+    hy_than = SINH[dung_than];
+  }
+  else{
+    // trung bình → cân bằng
+    dung_than = SINH[dayElement];
+    hy_than = KHAC[dayElement];
+  }
 
   return {
     tru,
-    an_can,
-    ngu_hanh,
-    dung_than
+    score: elements,
+    strength,
+    dung_than,
+    hy_than
   };
 }
 
