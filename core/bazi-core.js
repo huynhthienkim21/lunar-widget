@@ -17,39 +17,69 @@ const NGU_HANH = {
   "Nhâm":"Thủy","Quý":"Thủy"
 };
 
-// ===== ẨN CAN =====
 const HIDDEN = {
-  "Tý":["Quý"],
-  "Sửu":["Kỷ","Quý","Tân"],
-  "Dần":["Giáp","Bính","Mậu"],
-  "Mão":["Ất"],
-  "Thìn":["Mậu","Ất","Quý"],
-  "Tỵ":["Bính","Mậu","Canh"],
-  "Ngọ":["Đinh","Kỷ"],
-  "Mùi":["Kỷ","Đinh","Ất"],
-  "Thân":["Canh","Nhâm","Mậu"],
-  "Dậu":["Tân"],
-  "Tuất":["Mậu","Tân","Đinh"],
-  "Hợi":["Nhâm","Giáp"]
+  "Tý":["Quý"],"Sửu":["Kỷ","Quý","Tân"],"Dần":["Giáp","Bính","Mậu"],
+  "Mão":["Ất"],"Thìn":["Mậu","Ất","Quý"],"Tỵ":["Bính","Mậu","Canh"],
+  "Ngọ":["Đinh","Kỷ"],"Mùi":["Kỷ","Đinh","Ất"],"Thân":["Canh","Nhâm","Mậu"],
+  "Dậu":["Tân"],"Tuất":["Mậu","Tân","Đinh"],"Hợi":["Nhâm","Giáp"]
 };
 
 // ===== SINH KHẮC =====
 const SINH = { "Mộc":"Hỏa","Hỏa":"Thổ","Thổ":"Kim","Kim":"Thủy","Thủy":"Mộc" };
 const KHAC = { "Mộc":"Thổ","Thổ":"Thủy","Thủy":"Hỏa","Hỏa":"Kim","Kim":"Mộc" };
 
-// ===== MÙA =====
-const SEASON = {
-  "Dần":"Mộc","Mão":"Mộc",
-  "Tỵ":"Hỏa","Ngọ":"Hỏa",
-  "Thân":"Kim","Dậu":"Kim",
-  "Hợi":"Thủy","Tý":"Thủy",
-  "Thìn":"Thổ","Tuất":"Thổ","Sửu":"Thổ","Mùi":"Thổ"
+// ===== TRƯỜNG SINH =====
+const TRUONG_SINH = {
+  "Mộc":["Hợi","Tý","Sửu","Dần","Mão","Thìn","Tỵ","Ngọ","Mùi","Thân","Dậu","Tuất"],
+  "Hỏa":["Dần","Mão","Thìn","Tỵ","Ngọ","Mùi","Thân","Dậu","Tuất","Hợi","Tý","Sửu"],
+  "Thổ":["Thân","Dậu","Tuất","Hợi","Tý","Sửu","Dần","Mão","Thìn","Tỵ","Ngọ","Mùi"],
+  "Kim":["Tỵ","Ngọ","Mùi","Thân","Dậu","Tuất","Hợi","Tý","Sửu","Dần","Mão","Thìn"],
+  "Thủy":["Thân","Dậu","Tuất","Hợi","Tý","Sửu","Dần","Mão","Thìn","Tỵ","Ngọ","Mùi"]
 };
+
+// ===== THẬP THẦN =====
+function getThapThan(dayCan, otherCan){
+  const d = NGU_HANH[dayCan];
+  const o = NGU_HANH[otherCan];
+
+  if(d === o) return "Tỷ Kiên";
+
+  if(SINH[d] === o) return "Thực Thần";
+  if(KHAC[d] === o) return "Tài";
+
+  if(SINH[o] === d) return "Ấn";
+  if(KHAC[o] === d) return "Quan";
+
+  return "Khác";
+}
+
+// ===== VƯỢNG SUY =====
+function getTrangThai(can, chi){
+  const hanh = NGU_HANH[can];
+  const list = TRUONG_SINH[hanh];
+  return list.indexOf(chi);
+}
+
+// ===== THẦN SÁT (CORE) =====
+function getThanSat(tru){
+  const result = [];
+
+  if(tru.ngay.chi === "Tý" && tru.gio.chi === "Dậu"){
+    result.push("Đào Hoa");
+  }
+
+  if(tru.nam.chi === "Ngọ"){
+    result.push("Thiên Ất Quý Nhân");
+  }
+
+  return result;
+}
 
 // ===== YEAR =====
 function getBaZiYear(date){
   const tk = getTietKhi(date.getFullYear());
   const lapXuan = tk.find(t => t.name === "Lập Xuân");
+
   return date < new Date(lapXuan.time)
     ? date.getFullYear() - 1
     : date.getFullYear();
@@ -59,11 +89,7 @@ function getBaZiYear(date){
 function getMonthCanChi(date){
   const tk = getTietKhi(date.getFullYear());
 
-  const TIET = [
-    "Tiểu Hàn","Lập Xuân","Kinh Trập","Thanh Minh",
-    "Lập Hạ","Mang Chủng","Tiểu Thử","Lập Thu",
-    "Bạch Lộ","Hàn Lộ","Lập Đông","Đại Tuyết"
-  ];
+  const TIET = ["Lập Xuân","Kinh Trập","Thanh Minh","Lập Hạ","Mang Chủng","Tiểu Thử","Lập Thu","Bạch Lộ","Hàn Lộ","Lập Đông","Đại Tuyết","Tiểu Hàn"];
 
   const tiet = tk.filter(t => TIET.includes(t.name));
 
@@ -72,19 +98,33 @@ function getMonthCanChi(date){
     if(date >= new Date(tiet[i].time)) index = i;
   }
 
-  const chiIndex = (index + 1) % 12;
-
-  const year = getBaZiYear(date);
-  const yearCan = (year+6)%10;
-
+  const chiIndex = (index + 2) % 12;
+  const yearCan = (getBaZiYear(date)+6)%10;
   const startCan = [2,4,6,8,0,2,4,6,8,0];
   const canIndex = (startCan[yearCan] + index) % 10;
 
   return { can: CAN[canIndex], chi: CHI[chiIndex] };
 }
 
+// ===== ĐẠI VẬN =====
+function getDaiVan(year, gender){
+  const result = [];
+  let start = year + (gender === "male" ? 10 : 8);
+
+  for(let i=0;i<8;i++){
+    result.push(start + i*10);
+  }
+
+  return result;
+}
+
+// ===== LƯU NIÊN =====
+function getLuuNien(year){
+  return Array.from({length:10}, (_,i)=>year+i);
+}
+
 // ===== BUILD =====
-function buildBaZi(dd, mm, yy, hour=0){
+function buildBaZi(dd, mm, yy, hour=0, gender="male"){
 
   const date = new Date(`${yy}-${mm}-${dd}T${hour}:00:00+07:00`);
 
@@ -100,72 +140,28 @@ function buildBaZi(dd, mm, yy, hour=0){
     gio:{can:hourRaw[0],chi:hourRaw[1]}
   };
 
-  return analyze(tru);
-}
+  // ===== THẬP THẦN =====
+  const thap_than = {
+    nam: getThapThan(tru.ngay.can, tru.nam.can),
+    thang: getThapThan(tru.ngay.can, tru.thang.can),
+    gio: getThapThan(tru.ngay.can, tru.gio.can)
+  };
 
-// ===== PHÂN TÍCH =====
-function analyze(tru){
-
-  const elements = { Mộc:0, Hỏa:0, Thổ:0, Kim:0, Thủy:0 };
-
-  // ===== thiên can =====
-  Object.values(tru).forEach(p=>{
-    elements[ NGU_HANH[p.can] ] += 10;
-  });
-
-  // ===== ẩn can =====
-  Object.values(tru).forEach(p=>{
-    HIDDEN[p.chi].forEach(h=>{
-      elements[ NGU_HANH[h] ] += 5;
-    });
-  });
-
-  // ===== mùa =====
-  const season = SEASON[tru.thang.chi];
-  elements[season] += 15;
-
-  const dayElement = NGU_HANH[tru.ngay.can];
-
-  // ===== tính thân vượng / nhược =====
-  let support = 0;
-  let oppose = 0;
-
-  Object.keys(elements).forEach(e=>{
-    if(e === dayElement || SINH[e] === dayElement){
-      support += elements[e];
-    } else if(KHAC[e] === dayElement){
-      oppose += elements[e];
-    }
-  });
-
-  const strength = support - oppose;
-
-  // ===== chọn dụng thần =====
-  let dung_than;
-  let hy_than;
-
-  if(strength > 20){
-    // quá mạnh → tiết
-    dung_than = KHAC[dayElement];
-    hy_than = SINH[KHAC[dayElement]];
-  }
-  else if(strength < -20){
-    // quá yếu → sinh
-    dung_than = SINH[dayElement];
-    hy_than = SINH[dung_than];
-  }
-  else{
-    // trung bình → cân bằng
-    dung_than = SINH[dayElement];
-    hy_than = KHAC[dayElement];
-  }
+  // ===== VƯỢNG SUY =====
+  const vuong_suy = {
+    nam: getTrangThai(tru.ngay.can, tru.nam.chi),
+    thang: getTrangThai(tru.ngay.can, tru.thang.chi),
+    ngay: getTrangThai(tru.ngay.can, tru.ngay.chi),
+    gio: getTrangThai(tru.ngay.can, tru.gio.chi)
+  };
 
   return {
     tru,
-    score: elements,
-    strength,
-    dung_than,
-    hy_than
+    thap_than,
+    vuong_suy,
+    than_sat: getThanSat(tru),
+    dai_van: getDaiVan(yy, gender),
+    luu_nien: getLuuNien(yy)
   };
 }
 
