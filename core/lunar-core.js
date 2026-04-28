@@ -6,23 +6,33 @@ const CHI = ["Tý","Sửu","Dần","Mão","Thìn","Tỵ","Ngọ","Mùi","Thân",
 // ===== LUNAR =====
 function convertSolar2Lunar(dd, mm, yy){
   const data = getSolarLunar(yy);
-  const key = `${dd}/${mm}/${yy}`;
-  return data[key] || null;
-}
 
+  const key = `${yy}-${String(mm).padStart(2,'0')}-${String(dd).padStart(2,'0')}`;
+
+  const result = data[key];
+
+  if(!result) return null;
+
+  return {
+    day: result.lunar[0],
+    month: result.lunar[1],
+    year: result.lunar[2]
+  };
+}
 function convertLunar2Solar(dd, mm, yy){
   const data = getSolarLunar(yy);
 
   for(let key in data){
-    const v = data[key];
-    if(v.day === dd && v.month === mm && v.year === yy){
-      const [d,m,y] = key.split('/');
+    const l = data[key].lunar;
+
+    if(l[0] === dd && l[1] === mm && l[2] === yy){
+      const [y,m,d] = key.split('-');
       return { day:+d, month:+m, year:+y };
     }
   }
+
   return null;
 }
-
 // ===== CAN CHI =====
 function getYearCanChi(year){
   return CAN[(year+6)%10] + " " + CHI[(year+8)%12];
