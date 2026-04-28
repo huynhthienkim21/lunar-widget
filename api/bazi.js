@@ -1,21 +1,15 @@
-const { buildBaZi } = require('../core/bazi-core.js');
+const core = require('../core/bazi-core');
 
-module.exports = (req, res) => {
+module.exports = (req,res)=>{
   try{
-    const { day, month, year, hour, minute } = req.query;
+    const { day, month, year, hour } = req.query;
 
-    const data = buildBaZi(
-      +day,
-      +month,
-      +year,
-      +hour || 0,
-      +minute || 0,
-      7
-    );
+    const data = core.buildBaZi(+day,+month,+year,+hour);
 
     res.json(data);
 
-  }catch(e){
-    res.status(500).json({error:e.message});
+  }catch(err){
+    console.log(err);
+    res.status(500).json({error:err.message});
   }
 };
